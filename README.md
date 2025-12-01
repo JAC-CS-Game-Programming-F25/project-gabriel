@@ -69,11 +69,6 @@ This implementation of Head Soccer is a local two-player experience played on a 
 
 ![PlayerStateDiagram](./diagrams/PlayerStateDiagram.png)
 
-
-### Ball State Diagram
-
-![BallStateDiagram](./diagrams/BallStateDiagram.png)
-
 ### PowerUp State Diagram
 
 ![PowerUpStateDiagram](./diagrams/PowerUpStateDiagram.png)
@@ -167,6 +162,18 @@ The following sprites and images will be needed:
 - [itch.io Game Sprites](https://itch.io/game-assets/free)
 - [Head Soccer Sprites](https://develion.itch.io/head-ball) 
 - [Powerup Sprites](https://youngyokai.itch.io/simple-rpg-skill-icons-free)
+
+### 🏃🏾‍♂️ Animations
+
+**Player Animations:**
+- Kicking animation with boot extending outward
+
+**Ball Animations:**
+- Rolling animation that rotates based on velocity
+
+**Power-Up Animations:**
+- Collection burst effect when picked up
+- Flashing effect when duration is about to expire
 
 ### ✏️ Fonts
 

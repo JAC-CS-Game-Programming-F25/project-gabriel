@@ -162,6 +162,9 @@ The following sprites and images will be needed:
 - [itch.io Game Sprites](https://itch.io/game-assets/free)
 - [Head Soccer Sprites](https://develion.itch.io/head-ball) 
 - [Powerup Sprites](https://youngyokai.itch.io/simple-rpg-skill-icons-free)
+ 
+ ## Friend Sprite Sheet For Faces
+ ![FacesSprites](./assets/images/facessprites.png)
 
 ### 🏃🏾‍♂️ Animations
 

@@ -28,6 +28,10 @@ export default class Match {
 		// Create ball at center
 		this.ball = new Ball(CANVAS_WIDTH / 2, CANVAS_HEIGHT - Ground.GRASS.height - 200);
 		
+		// Give players reference to ball for kicking
+		this.player1.ball = this.ball;
+		this.player2.ball = this.ball;
+		
 		// Match timer (90 seconds)
 		this.timeRemaining = 90;
 		this.matchTimer = 0;
@@ -37,7 +41,7 @@ export default class Match {
 	}
 
 	setupCollisions() {
-		// Listen for collision events on the engine, not world.engine
+		// Listen for collision events on the engine
 		Events.on(engine, 'collisionStart', (event) => {
 			event.pairs.forEach((pair) => {
 				const { bodyA, bodyB } = pair;
@@ -46,12 +50,23 @@ export default class Match {
 				if (this.isBallGoalCollision(bodyA, bodyB)) {
 					this.handleGoal(bodyA, bodyB);
 				}
+				
+				// Check if player kicked/headed the ball
+				if (this.isPlayerBallCollision(bodyA, bodyB)) {
+					this.handleKick(bodyA, bodyB);
+				}
 			});
 		});
 	}
 
 	isBallGoalCollision(bodyA, bodyB) {
-		return (bodyA.label === BodyType.Ball && bodyB.label === BodyType.Goal) || (bodyB.label === BodyType.Ball && bodyA.label === BodyType.Goal);
+		return (bodyA.label === BodyType.Ball && bodyB.label === BodyType.Goal) || 
+		       (bodyB.label === BodyType.Ball && bodyA.label === BodyType.Goal);
+	}
+
+	isPlayerBallCollision(bodyA, bodyB) {
+		return (bodyA.label === BodyType.Player && bodyB.label === BodyType.Ball) ||
+		       (bodyB.label === BodyType.Player && bodyA.label === BodyType.Ball);
 	}
 
 	handleGoal(bodyA, bodyB) {
@@ -72,6 +87,31 @@ export default class Match {
 		this.ball.reset(CANVAS_WIDTH / 2, CANVAS_HEIGHT - Ground.GRASS.height - 200);
 		
 		// TODO: Play goal sound, show celebration animation
+	}
+
+	handleKick(bodyA, bodyB) {
+		// Determine which is the player body and which is the ball
+		const playerBody = bodyA.label === BodyType.Player ? bodyA : bodyB;
+		const ballBody = bodyA.label === BodyType.Ball ? bodyA : bodyB;
+		
+		const player = playerBody.entity;
+		
+		if (!player) return;
+		
+		// Check if it's the head that hit the ball (boot kicks are handled in Player.js)
+		const isHeadHit = playerBody === player.head;
+		
+		if (isHeadHit) {
+			// HEAD HIT is a lighter touch
+			// Ball gets extra bounce from head collision
+			const headDirection = player.facingRight ? 1 : -1;
+			matter.Body.applyForce(ballBody, ballBody.position, {
+				x: headDirection * 0.1,
+				y: -0.06,
+			});
+			console.log(`Player ${player.playerNumber} headed the ball!`);
+		}
+		// Boot collisions are just natural physics bumps
 	}
 
 	update(dt) {
@@ -125,7 +165,7 @@ export default class Match {
 
 	getWinner() {
 		if (this.player1.score > this.player2.score) return 1;
-		if (this.player2.score > this.player1.score) return 2;
+		if (this.player2.score > this.player2.score) return 2;
 		return 0; // Tie
 	}
 }

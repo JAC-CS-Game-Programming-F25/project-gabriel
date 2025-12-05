@@ -8,12 +8,13 @@ const { Bodies, Body, Composite, Constraint } = matter;
 
 export default class Player {
 	static HEAD_RADIUS = 25;
-	static BOOT_WIDTH = 25;
-	static BOOT_HEIGHT = 15;
+	static BOOT_WIDTH = 60;  // Long boot
+	static BOOT_HEIGHT = 20; // Tall boot
 
 	/**
 	 * A player character composed of a head (circle) and boot (rectangle).
-	 * Both parts have hitboxes and the boot is used for ground contact and kicking.
+	 * Player 1 faces RIGHT (head on left side of boot).
+	 * Player 2 faces LEFT (head on right side of boot).
 	 * 
 	 * @param {number} x
 	 * @param {number} y
@@ -22,28 +23,40 @@ export default class Player {
 	constructor(x, y, playerNumber = 1) {
 		this.playerNumber = playerNumber;
 		this.score = 0;
-		this.facingRight = playerNumber === 2;
+		this.facingRight = playerNumber === 1; // P1 faces right, P2 faces left
 		this.shouldCleanUp = false;
+		this.ball = null;
 
-		// Create the head (upper body)
-		this.head = Bodies.circle(x, y - Player.HEAD_RADIUS / 2, Player.HEAD_RADIUS, {
-			label: BodyType.Player,
-			density: 0.005,
-			restitution: 0.3,
-			friction: 0.1,
-		});
-
-		// Create the boot (the lower body) that touches the ground
+		// Create the boot FIRST (it's the main body on the ground)
 		this.boot = Bodies.rectangle(
 			x,
-			y + Player.HEAD_RADIUS + Player.BOOT_HEIGHT / 2 - 5,
+			y,
 			Player.BOOT_WIDTH,
 			Player.BOOT_HEIGHT,
 			{
 				label: BodyType.Player,
-				density: 0.01,
-				restitution: 0.1,
-				friction: 1.0, // High friction for good traction
+				density: 0.015,
+				restitution: 0.0, // No bounce
+				friction: 0.3, // lower friction for gliding
+				frictionStatic: 0.3, // Low static friction too
+				inertia: Infinity, // Prevents rotation from physics
+			}
+		);
+
+		// Position head on the back of boot based on facing direction
+		// P1 faces right -> head on left side of boot
+		// P2 faces left -> head on right side of boot
+		const heelOffsetX = this.facingRight ? -Player.BOOT_WIDTH / 2 + 10 : Player.BOOT_WIDTH / 2 - 10;
+		this.head = Bodies.circle(
+			x + heelOffsetX,
+			y - Player.BOOT_HEIGHT / 2 - Player.HEAD_RADIUS,
+			Player.HEAD_RADIUS,
+			{
+				label: BodyType.Player,
+				density: 0.005,
+				restitution: 0.3,
+				friction: 0.1,
+				inertia: Infinity, // Lock head roation too
 			}
 		);
 
@@ -52,14 +65,15 @@ export default class Player {
 			bodies: [this.head, this.boot],
 		});
 
-		// Constraint to keep head and boot together but allow some flexibility
+		// Constraint to wweld head to the heel of the boot so it doesnt move at all
 		const constraint = Constraint.create({
 			bodyA: this.head,
 			bodyB: this.boot,
-			pointA: { x: 0, y: Player.HEAD_RADIUS * 0.8 },
-			pointB: { x: 0, y: -Player.BOOT_HEIGHT / 2 },
-			stiffness: 0.9,
-			length: 5,
+			pointA: { x: 0, y: Player.HEAD_RADIUS },
+			pointB: { x: heelOffsetX, y: -Player.BOOT_HEIGHT / 2 },
+			stiffness: 1.0, // Maximum stiffness
+			damping: 0.1, // Add damping to prevent oscillation
+			length: 0, // Zero length = welded together
 		});
 
 		Composite.add(this.body, constraint);
@@ -101,8 +115,8 @@ export default class Player {
 	}
 
 	handleMovement() {
-		const speed = 0.01;
-		const maxSpeed = 6;
+		const speed = 0.018; // Increased for better gliding
+		const maxSpeed = 8; // Higher max speed
 		
 		const bootVelocity = this.boot.velocity;
 		
@@ -135,17 +149,53 @@ export default class Player {
 
 	jump() {
 		// Apply jump force to both head and boot
-		Body.applyForce(this.head, this.head.position, { x: 0, y: -0.25 });
-		Body.applyForce(this.boot, this.boot.position, { x: 0, y: -0.25 });
+		Body.applyForce(this.head, this.head.position, { x: 0, y: -0.3 });
+		Body.applyForce(this.boot, this.boot.position, { x: 0, y: -0.3 });
 	}
 
 	kick() {
 		this.isKicking = true;
 		this.kickTimer = 0;
 		
-		// Apply kick force to boot
-		const kickForce = this.facingRight ? 0.03 : -0.03;
-		Body.applyForce(this.boot, this.boot.position, { x: kickForce, y: 0 });
+		// Check if ball is nearby and kick it
+		this.checkAndKickBall();
+	}
+
+	checkAndKickBall() {
+		// Calculate distance from boot to ball
+		// We need to find the ball so we'll store a reference to it
+		if (!this.ball) return;
+		
+		const bootPos = this.boot.position;
+		const ballPos = this.ball.body.position;
+		
+		// Calculate distance
+		const dx = ballPos.x - bootPos.x;
+		const dy = ballPos.y - bootPos.y;
+		const distance = Math.sqrt(dx * dx + dy * dy);
+		
+		// Kick range so if ball is within this distance, kick it
+		const kickRange = Player.BOOT_WIDTH + this.ball.radius + 10;
+		
+		// Check if ball is in front of player (not behind)
+		const isInFront = this.facingRight ? dx > 0 : dx < 0;
+		
+		if (distance < kickRange && isInFront) {
+			// KICK THE BALL!
+			const kickDirection = this.facingRight ? 1 : -1;
+			
+			// Strong kick force
+			const baseKickPower = 0.25;
+			const velocityBonus = Math.abs(this.boot.velocity.x) * 0.03;
+			const totalPower = baseKickPower + velocityBonus;
+			
+			Body.applyForce(this.ball.body, this.ball.body.position, {
+				x: kickDirection * totalPower,
+				y: -0.12, // Upward trajectory
+			});
+			
+			console.log(`Player ${this.playerNumber} KICKED! Power: ${totalPower.toFixed(2)}`);
+		}
 	}
 
 	updateKick(dt) {
@@ -159,13 +209,23 @@ export default class Player {
 	}
 
 	updateOrientation() {
-		// Keep the boot upright (prevent rotation)
+		// Force boot to stay completely flat (no rotation ever)
 		Body.setAngle(this.boot, 0);
 		Body.setAngularVelocity(this.boot, 0);
 		
-		// Limit head rotation
-		if (Math.abs(this.head.angle) > Math.PI / 6) {
-			Body.setAngle(this.head, Math.sign(this.head.angle) * Math.PI / 6);
+		// Force head to stay upright too
+		Body.setAngle(this.head, 0);
+		Body.setAngularVelocity(this.head, 0);
+		
+		if (this.isOnGround()) {
+			Body.setVelocity(this.boot, {
+				x: this.boot.velocity.x,
+				y: Math.max(0, this.boot.velocity.y * 0.5) // Kill downward velocity
+			});
+			Body.setVelocity(this.head, {
+				x: this.head.velocity.x,
+				y: Math.max(0, this.head.velocity.y * 0.5)
+			});
 		}
 	}
 
@@ -219,17 +279,19 @@ export default class Player {
 		
 		context.restore();
 
-		// Render boot
+		// Render boot 
 		context.save();
 		context.translate(this.boot.position.x, this.boot.position.y);
-		context.rotate(this.boot.angle);
 		
-		// Boot extends forward when kicking
-		const kickOffset = this.isKicking ? (this.facingRight ? 8 : -8) : 0;
+		// Kick animation extends boot forward
+		const kickOffset = this.isKicking ? 12 : 0;
+		
+		// Draw boot extending FORWARD from heel position
+		const bootStartX = this.facingRight ? -Player.BOOT_WIDTH / 2 : -Player.BOOT_WIDTH / 2;
 		
 		context.fillStyle = this.playerNumber === 1 ? '#8B4513' : '#2C3E50';
 		context.fillRect(
-			-Player.BOOT_WIDTH / 2 + kickOffset,
+			bootStartX + (this.facingRight ? kickOffset : -kickOffset),
 			-Player.BOOT_HEIGHT / 2,
 			Player.BOOT_WIDTH,
 			Player.BOOT_HEIGHT
@@ -237,19 +299,21 @@ export default class Player {
 		context.strokeStyle = 'black';
 		context.lineWidth = 2;
 		context.strokeRect(
-			-Player.BOOT_WIDTH / 2 + kickOffset,
+			bootStartX + (this.facingRight ? kickOffset : -kickOffset),
 			-Player.BOOT_HEIGHT / 2,
 			Player.BOOT_WIDTH,
 			Player.BOOT_HEIGHT
 		);
 		
-		// Draw boot detail
+		// Draw toe cap at the FRONT of boot
 		context.fillStyle = 'rgba(0, 0, 0, 0.3)';
-		const toeX = this.facingRight ? Player.BOOT_WIDTH / 2 - 8 : -Player.BOOT_WIDTH / 2;
+		const toeX = this.facingRight ? 
+			Player.BOOT_WIDTH / 2 - 12 : 
+			-Player.BOOT_WIDTH / 2;
 		context.fillRect(
-			toeX + kickOffset,
+			toeX + (this.facingRight ? kickOffset : -kickOffset),
 			-Player.BOOT_HEIGHT / 2,
-			8,
+			12,
 			Player.BOOT_HEIGHT
 		);
 		

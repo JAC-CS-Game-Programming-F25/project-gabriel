@@ -3,6 +3,7 @@ import Ground from "../entities/Ground.js";
 import Player from "../entities/Player.js";
 import Ball from "../entities/Ball.js";
 import Goal from "../entities/Goal.js";
+import Wall from "../entities/Wall.js";
 import { context, CANVAS_WIDTH, CANVAS_HEIGHT, matter, engine } from "../globals.js";
 import BodyType from "../enums/BodyType.js";
 
@@ -16,6 +17,33 @@ export default class Match {
 	constructor() {
 		this.stadium = new Stadium();
 		this.ground = new Ground();
+		
+		// Create invisible walls to keep ball/players on screen
+		const wallThickness = 50;
+		
+		// Left wall
+		this.leftWall = new Wall(
+			-wallThickness,
+			0,
+			wallThickness,
+			CANVAS_HEIGHT
+		);
+		
+		// Right wall
+		this.rightWall = new Wall(
+			CANVAS_WIDTH,
+			0,
+			wallThickness,
+			CANVAS_HEIGHT
+		);
+		
+		// Top wall
+		this.topWall = new Wall(
+			0,
+			-wallThickness,
+			CANVAS_WIDTH,
+			wallThickness
+		);
 		
 		// Create goals at both ends
 		this.goal1 = new Goal(50, CANVAS_HEIGHT - Ground.GRASS.height - Goal.HEIGHT / 2, 1);
@@ -102,7 +130,7 @@ export default class Match {
 		const isHeadHit = playerBody === player.head;
 		
 		if (isHeadHit) {
-			// HEAD HIT is a lighter touch
+			// Head hit lighter touch natural physics
 			// Ball gets extra bounce from head collision
 			const headDirection = player.facingRight ? 1 : -1;
 			matter.Body.applyForce(ballBody, ballBody.position, {

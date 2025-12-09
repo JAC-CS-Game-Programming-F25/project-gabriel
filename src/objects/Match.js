@@ -37,7 +37,7 @@ export default class Match {
 			CANVAS_HEIGHT
 		);
 		
-		// Top wall
+		// Top wall (ceiling)
 		this.topWall = new Wall(
 			0,
 			-wallThickness,
@@ -63,6 +63,11 @@ export default class Match {
 		// Match timer (90 seconds)
 		this.timeRemaining = 90;
 		this.matchTimer = 0;
+		
+		// Countdown before match starts
+		this.countdownTime = 3; // 3 seconds countdown
+		this.countdownTimer = 0;
+		this.matchStarted = false;
 		
 		// Setup collision detection
 		this.setupCollisions();
@@ -143,6 +148,25 @@ export default class Match {
 	}
 
 	update(dt) {
+		// Handle countdown before match starts
+		if (!this.matchStarted) {
+			this.countdownTimer += dt;
+			
+			if (this.countdownTimer >= 1) {
+				this.countdownTime--;
+				this.countdownTimer = 0;
+				
+				if (this.countdownTime <= 0) {
+					this.matchStarted = true;
+					console.log("MATCH START!");
+				}
+			}
+			
+			// Don't update players or timer during countdown
+			return;
+		}
+		
+		// Normal match update
 		this.player1.update(dt);
 		this.player2.update(dt);
 		this.ball.update(dt);
@@ -167,6 +191,38 @@ export default class Match {
 	}
 
 	renderUI() {
+		// Render countdown if match hasn't started
+		if (!this.matchStarted) {
+			context.save();
+			context.fillStyle = 'rgba(0, 0, 0, 0.5)';
+			context.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+			
+			// Draw countdown number or GO
+			context.textAlign = 'center';
+			context.textBaseline = 'middle';
+			
+			if (this.countdownTime > 0) {
+				// Show countdown number (3, 2, 1)
+				context.font = '300px Arial';
+				context.fillStyle = 'white';
+				context.fillText(this.countdownTime, CANVAS_WIDTH / 2, CANVAS_HEIGHT / 2);
+				context.strokeStyle = 'black';
+				context.lineWidth = 8;
+				context.strokeText(this.countdownTime, CANVAS_WIDTH / 2, CANVAS_HEIGHT / 2);
+			} else {
+				// Show GO!
+				context.font = '200px Arial';
+				context.fillStyle = 'limegreen';
+				context.fillText('GO!', CANVAS_WIDTH / 2, CANVAS_HEIGHT / 2);
+				context.strokeStyle = 'darkgreen';
+				context.lineWidth = 8;
+				context.strokeText('GO!', CANVAS_WIDTH / 2, CANVAS_HEIGHT / 2);
+			}
+			
+			context.restore();
+			return; // Don't render normal ui during countdown
+		}
+		
 		// Render scores
 		context.save();
 		context.fillStyle = 'white';

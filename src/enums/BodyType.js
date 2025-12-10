@@ -4,6 +4,7 @@ const BodyType = {
 	Ball: 'ball',
 	Goal: 'goal',
 	Wall: 'wall',
+	PowerUp: 'powerup',
 };
 
 export default BodyType;

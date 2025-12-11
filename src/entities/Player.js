@@ -101,6 +101,14 @@ export default class Player {
 		this.isKicking = false;
 		this.kickTimer = 0;
 		this.kickDuration = 0.15;
+		
+		// PowerUp effects
+		this.hasSpeedBoost = false;
+		this.speedBoostTimer = 0;
+		this.hasBigHead = false;
+		this.bigHeadTimer = 0;
+		this.hasSuperKick = false;
+		this.superKickTimer = 0;
 	}
 
 	update(dt) {
@@ -112,11 +120,14 @@ export default class Player {
 		this.handleMovement();
 		this.updateKick(dt);
 		this.updateOrientation();
+		this.updatePowerUps(dt);
 	}
 
 	handleMovement() {
-		const speed = 0.018; // Increased for better gliding
-		const maxSpeed = 8; // Higher max speed
+		const baseSpeed = 0.018;
+		const speedMultiplier = this.hasSpeedBoost ? 1.8 : 1.0; // 80% faster with speed boost
+		const speed = baseSpeed * speedMultiplier;
+		const maxSpeed = 8 * speedMultiplier;
 		
 		const bootVelocity = this.boot.velocity;
 		
@@ -184,9 +195,17 @@ export default class Player {
 			// KICK THE BALL!
 			const kickDirection = this.facingRight ? 1 : -1;
 			
-			// Strong kick force
-			const baseKickPower = 0.25;
+			// Base kick power + velocity bonus
+			let baseKickPower = 0.25;
 			const velocityBonus = Math.abs(this.boot.velocity.x) * 0.03;
+			
+			// Apply super kick multiplier if active
+			if (this.hasSuperKick) {
+				baseKickPower *= 3.0; // Triple power
+				this.hasSuperKick = false; // Consumed after one use
+				console.log(`Player ${this.playerNumber} used SUPER KICK!`);
+			}
+			
 			const totalPower = baseKickPower + velocityBonus;
 			
 			Body.applyForce(this.ball.body, this.ball.body.position, {
@@ -204,6 +223,37 @@ export default class Player {
 			if (this.kickTimer >= this.kickDuration) {
 				this.isKicking = false;
 				this.kickTimer = 0;
+			}
+		}
+	}
+
+	updatePowerUps(dt) {
+		// Update speed boost timer
+		if (this.hasSpeedBoost) {
+			this.speedBoostTimer -= dt;
+			if (this.speedBoostTimer <= 0) {
+				this.hasSpeedBoost = false;
+				this.speedBoostTimer = 0;
+				console.log(`Player ${this.playerNumber} speed boost expired`);
+			}
+		}
+		
+		// Update big head timer
+		if (this.hasBigHead) {
+			this.bigHeadTimer -= dt;
+			if (this.bigHeadTimer <= 0) {
+				this.hasBigHead = false;
+				this.bigHeadTimer = 0;
+				console.log(`Player ${this.playerNumber} big head expired`);
+			}
+		}
+		
+		// Update super kick timer (just for display, effect is one-time)
+		if (this.hasSuperKick) {
+			this.superKickTimer -= dt;
+			if (this.superKickTimer <= 0) {
+				this.hasSuperKick = false;
+				this.superKickTimer = 0;
 			}
 		}
 	}

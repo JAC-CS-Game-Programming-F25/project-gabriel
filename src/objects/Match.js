@@ -127,9 +127,11 @@ export default class Match {
 		// Award point to the other player (if goal 1 is scored on, player 2 scores)
 		if (goalEntity.playerNumber === 1) {
 			this.player2.addScore();
+			this.lastScorer = 2; 
 			console.log("Player 2 scored!");
 		} else {
 			this.player1.addScore();
+			this.lastScorer = 1; 
 			console.log("Player 1 scored!");
 		}
 		

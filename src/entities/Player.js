@@ -15,6 +15,7 @@ export default class Player {
 	 * A player character composed of a head (circle) and boot (rectangle).
 	 * Player 1 faces RIGHT (head on left side of boot).
 	 * Player 2 faces LEFT (head on right side of boot).
+	 * Boot is locked from rotation to prevent rolling.
 	 * 
 	 * @param {number} x
 	 * @param {number} y
@@ -37,7 +38,7 @@ export default class Player {
 				label: BodyType.Player,
 				density: 0.015,
 				restitution: 0.0, // No bounce
-				friction: 0.3, // lower friction for gliding
+				friction: 0.1, // low friction for gliding
 				frictionStatic: 0.3, // Low static friction too
 				inertia: Infinity, // Prevents rotation from physics
 			}
@@ -124,10 +125,10 @@ export default class Player {
 	}
 
 	handleMovement() {
-		const baseSpeed = 0.018;
+		const baseSpeed = 0.025; 
 		const speedMultiplier = this.hasSpeedBoost ? 1.8 : 1.0; // 80% faster with speed boost
 		const speed = baseSpeed * speedMultiplier;
-		const maxSpeed = 8 * speedMultiplier;
+		const maxSpeed = 10 * speedMultiplier; 
 		
 		const bootVelocity = this.boot.velocity;
 		
@@ -160,8 +161,8 @@ export default class Player {
 
 	jump() {
 		// Apply jump force to both head and boot
-		Body.applyForce(this.head, this.head.position, { x: 0, y: -0.3 });
-		Body.applyForce(this.boot, this.boot.position, { x: 0, y: -0.3 });
+		Body.applyForce(this.head, this.head.position, { x: 0, y: -0.35 });
+		Body.applyForce(this.boot, this.boot.position, { x: 0, y: -0.35 });
 	}
 
 	kick() {
@@ -196,21 +197,21 @@ export default class Player {
 			const kickDirection = this.facingRight ? 1 : -1;
 			
 			// Base kick power + velocity bonus
-			let baseKickPower = 0.25;
-			const velocityBonus = Math.abs(this.boot.velocity.x) * 0.03;
+			let baseKickPower = 0.15;
+			const velocityBonus = Math.abs(this.boot.velocity.x) * 0.02; 
 			
 			// Apply super kick multiplier if active
 			if (this.hasSuperKick) {
-				baseKickPower *= 3.0; // Triple power
+				baseKickPower *= 3.0; 
 				this.hasSuperKick = false; // Consumed after one use
 				console.log(`Player ${this.playerNumber} used SUPER KICK!`);
 			}
 			
 			const totalPower = baseKickPower + velocityBonus;
 			
-			Body.applyForce(this.ball.body, this.ball.body.position, {
+			matter.Body.applyForce(this.ball.body, this.ball.body.position, {
 				x: kickDirection * totalPower,
-				y: -0.12, // Upward trajectory
+				y: -0.08, 
 			});
 			
 			console.log(`Player ${this.playerNumber} KICKED! Power: ${totalPower.toFixed(2)}`);

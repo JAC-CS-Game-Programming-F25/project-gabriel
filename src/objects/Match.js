@@ -127,11 +127,11 @@ export default class Match {
 		// Award point to the other player (if goal 1 is scored on, player 2 scores)
 		if (goalEntity.playerNumber === 1) {
 			this.player2.addScore();
-			this.lastScorer = 2; 
+			this.lastScorer = 2;
 			console.log("Player 2 scored!");
 		} else {
 			this.player1.addScore();
-			this.lastScorer = 1; 
+			this.lastScorer = 1;
 			console.log("Player 1 scored!");
 		}
 		
@@ -328,6 +328,59 @@ export default class Match {
 		
 		context.restore();
 		
+		// Show active powerup effects for both players
+		context.save();
+		context.font = '28px Arial';
+		context.fillStyle = 'white';
+		context.strokeStyle = 'black';
+		context.lineWidth = 3;
+		
+		// Player 1 powerups (bottom left)
+		context.textAlign = 'left';
+		let p1PowerupY = CANVAS_HEIGHT - 80;
+		
+		if (this.player1.hasSpeedBoost) {
+			const text = `⚡ Speed: ${this.player1.speedBoostTimer.toFixed(1)}s`;
+			context.strokeText(text, 50, p1PowerupY);
+			context.fillText(text, 50, p1PowerupY);
+			p1PowerupY -= 35;
+		}
+		if (this.player1.hasBigHead) {
+			const text = `🎈 Big Head: ${this.player1.bigHeadTimer.toFixed(1)}s`;
+			context.strokeText(text, 50, p1PowerupY);
+			context.fillText(text, 50, p1PowerupY);
+			p1PowerupY -= 35;
+		}
+		if (this.player1.hasSuperKick) {
+			const text = `🔥 Super Kick: ${this.player1.superKickTimer.toFixed(1)}s`;
+			context.strokeText(text, 50, p1PowerupY);
+			context.fillText(text, 50, p1PowerupY);
+		}
+		
+		// Player 2 powerups (bottom right)
+		context.textAlign = 'right';
+		let p2PowerupY = CANVAS_HEIGHT - 80;
+		
+		if (this.player2.hasSpeedBoost) {
+			const text = `⚡ Speed: ${this.player2.speedBoostTimer.toFixed(1)}s`;
+			context.strokeText(text, CANVAS_WIDTH - 50, p2PowerupY);
+			context.fillText(text, CANVAS_WIDTH - 50, p2PowerupY);
+			p2PowerupY -= 35;
+		}
+		if (this.player2.hasBigHead) {
+			const text = `🎈 Big Head: ${this.player2.bigHeadTimer.toFixed(1)}s`;
+			context.strokeText(text, CANVAS_WIDTH - 50, p2PowerupY);
+			context.fillText(text, CANVAS_WIDTH - 50, p2PowerupY);
+			p2PowerupY -= 35;
+		}
+		if (this.player2.hasSuperKick) {
+			const text = `🔥 Super Kick: ${this.player2.superKickTimer.toFixed(1)}s`;
+			context.strokeText(text, CANVAS_WIDTH - 50, p2PowerupY);
+			context.fillText(text, CANVAS_WIDTH - 50, p2PowerupY);
+		}
+		
+		context.restore();
+		
 		// Render goal animation if active
 		if (this.showingGoal) {
 			context.save();
@@ -365,7 +418,7 @@ export default class Match {
 
 	getWinner() {
 		if (this.player1.score > this.player2.score) return 1;
-		if (this.player2.score > this.player2.score) return 2;
+		if (this.player2.score > this.player1.score) return 2;
 		return 0; // Tie
 	}
 }

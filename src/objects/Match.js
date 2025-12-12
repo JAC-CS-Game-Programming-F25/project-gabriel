@@ -20,7 +20,7 @@ export default class Match {
 		this.ground = new Ground();
 		
 		// Create invisible walls to keep ball/players on screen
-		const wallThickness = 50;
+		const wallThickness = 200;
 		
 		// Left wall
 		this.leftWall = new Wall(
@@ -122,9 +122,20 @@ export default class Match {
 	handleGoal(bodyA, bodyB) {
 		// figure out which goal was scored on
 		const goalBody = bodyA.label === BodyType.Goal ? bodyA : bodyB;
+		const ballBody = bodyA.label === BodyType.Ball ? bodyA : bodyB;
 		const goalEntity = goalBody.entity;
 		
-		// Award point to the other player (if goal 1 is scored on, player 2 scores)
+		// Check if ball is below the crossbar level
+		const goalTopY = goalBody.position.y - Goal.HEIGHT / 2;
+		const ballY = ballBody.position.y;
+		
+		if (ballY < goalTopY + 15) {
+			// Ball is at/above crossbar so crossbar will handle physics, no goal
+			console.log("Ball at crossbar level! no goal!");
+			return;
+		}
+		
+		// Ball is below crossbar so GOAL!
 		if (goalEntity.playerNumber === 1) {
 			this.player2.addScore();
 			this.lastScorer = 2;

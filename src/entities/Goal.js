@@ -1,6 +1,6 @@
 import Rectangle from './Rectangle.js';
 import BodyType from '../enums/BodyType.js';
-import { context } from '../globals.js';
+import { context, matter, world } from '../globals.js';
 
 export default class Goal extends Rectangle {
 	static WIDTH = 100;
@@ -22,6 +22,23 @@ export default class Goal extends Rectangle {
 
 		this.playerNumber = playerNumber;
 		this.renderOffset = { x: -Goal.WIDTH / 2, y: -Goal.HEIGHT / 2 };
+
+		// Create solid crossbar that ball bounces off and that is angled slightly so ball rolls off
+		const crossbarThickness = 10;
+		this.crossbar = matter.Bodies.rectangle(
+			this.body.position.x,
+			this.body.position.y - Goal.HEIGHT / 2 + crossbarThickness / 2,
+			Goal.WIDTH,
+			crossbarThickness,
+			{
+				label: BodyType.Wall, // Solid collision
+				isStatic: true,
+				restitution: 0.95, // VERY bouncy
+				friction: 0.15,
+				angle: playerNumber === 1 ? -0.08 : 0.08,
+			}
+		);
+		matter.Composite.add(world, this.crossbar);
 	}
 
 	render() {

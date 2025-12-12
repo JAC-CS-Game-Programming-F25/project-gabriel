@@ -38,8 +38,8 @@ export default class Player {
 				label: BodyType.Player,
 				density: 0.015,
 				restitution: 0.0, // No bounce
-				friction: 0.1, // low friction for gliding
-				frictionStatic: 0.3, // Low static friction too
+				friction: 0.01, // Very low friction for smooth movement
+				frictionStatic: 0.01, // Very low static friction
 				inertia: Infinity, // Prevents rotation from physics
 			}
 		);
@@ -125,10 +125,14 @@ export default class Player {
 	}
 
 	handleMovement() {
-		const baseSpeed = 0.025; 
+		const baseSpeed = 0.04; // Increased for more responsive movement
 		const speedMultiplier = this.hasSpeedBoost ? 1.8 : 1.0; // 80% faster with speed boost
-		const speed = baseSpeed * speedMultiplier;
-		const maxSpeed = 10 * speedMultiplier; 
+		const onGround = this.isOnGround();
+		
+		// Reduce air control so only 30% of ground control when in air
+		const airControlMultiplier = onGround ? 1.0 : 0.3;
+		const speed = baseSpeed * speedMultiplier * airControlMultiplier;
+		const maxSpeed = 7 * speedMultiplier; 
 		
 		const bootVelocity = this.boot.velocity;
 		
@@ -149,7 +153,7 @@ export default class Player {
 		}
 		
 		// Jump
-		if (input.isKeyPressed(this.controls.jump) && this.isOnGround()) {
+		if (input.isKeyPressed(this.controls.jump) && onGround) {
 			this.jump();
 		}
 		

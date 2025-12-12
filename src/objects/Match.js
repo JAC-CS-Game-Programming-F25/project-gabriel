@@ -4,6 +4,7 @@ import Player from "../entities/Player.js";
 import Ball from "../entities/Ball.js";
 import Goal from "../entities/Goal.js";
 import Wall from "../entities/Wall.js";
+import PowerUpFactory from "./PowerUpFactory.js";
 import { context, CANVAS_WIDTH, CANVAS_HEIGHT, matter, engine } from "../globals.js";
 import BodyType from "../enums/BodyType.js";
 
@@ -69,6 +70,17 @@ export default class Match {
 		this.countdownTimer = 0;
 		this.matchStarted = false;
 		
+		// Goal celebration animation
+		this.showingGoal = false;
+		this.goalTimer = 0;
+		this.goalDuration = 2.0; // Show goal for 2 seconds
+		this.lastScorer = 0; // Which player scored (1 or 2)
+		
+		// PowerUp spawning system
+		this.powerups = []; // Array of active powerups
+		this.powerupSpawnTimer = 0;
+		this.powerupSpawnInterval = 15 + Math.random() * 5; // 15-20 seconds
+		
 		// Setup collision detection
 		this.setupCollisions();
 	}
@@ -87,6 +99,11 @@ export default class Match {
 				// Check if player kicked/headed the ball
 				if (this.isPlayerBallCollision(bodyA, bodyB)) {
 					this.handleKick(bodyA, bodyB);
+				}
+				
+				// Check if player collected powerup
+				if (this.isPlayerPowerUpCollision(bodyA, bodyB)) {
+					this.handlePowerUpCollection(bodyA, bodyB);
 				}
 			});
 		});
@@ -116,10 +133,14 @@ export default class Match {
 			console.log("Player 1 scored!");
 		}
 		
+		// Trigger goal celebration animation
+		this.showingGoal = true;
+		this.goalTimer = 0;
+		
 		// Reset ball to center
 		this.ball.reset(CANVAS_WIDTH / 2, CANVAS_HEIGHT - Ground.GRASS.height - 200);
 		
-		// TODO: Play goal sound, show celebration animation
+		// TODO: Play goal sound
 	}
 
 	handleKick(bodyA, bodyB) {
@@ -144,7 +165,42 @@ export default class Match {
 			});
 			console.log(`Player ${player.playerNumber} headed the ball!`);
 		}
-		// Boot collisions are just natural physics bumps
+		// Boot collisions are just natural physics bumps 
+	}
+
+	isPlayerPowerUpCollision(bodyA, bodyB) {
+		return (bodyA.label === BodyType.Player && bodyB.label === BodyType.PowerUp) ||
+		       (bodyB.label === BodyType.Player && bodyA.label === BodyType.PowerUp);
+	}
+
+	handlePowerUpCollection(bodyA, bodyB) {
+		const playerBody = bodyA.label === BodyType.Player ? bodyA : bodyB;
+		const powerupBody = bodyA.label === BodyType.PowerUp ? bodyA : bodyB;
+		
+		const player = playerBody.entity;
+		const powerup = powerupBody.entity;
+		
+		if (player && powerup && !powerup.collected) {
+			powerup.collect(player);
+			// Remove from active powerups array
+			const index = this.powerups.indexOf(powerup);
+			if (index > -1) {
+				this.powerups.splice(index, 1);
+			}
+		}
+	}
+
+	spawnRandomPowerUp() {
+		// Spawn in middle area of field, above ground
+		const minX = 400;
+		const maxX = CANVAS_WIDTH - 400;
+		const x = minX + Math.random() * (maxX - minX);
+		const y = CANVAS_HEIGHT - Ground.GRASS.height - 150;
+		
+		const powerup = PowerUpFactory.createRandom(x, y);
+		this.powerups.push(powerup);
+		
+		console.log(`PowerUp spawned: ${powerup.type}`);
 	}
 
 	update(dt) {
@@ -166,10 +222,37 @@ export default class Match {
 			return;
 		}
 		
+		// Handle goal celebration animation
+		if (this.showingGoal) {
+			this.goalTimer += dt;
+			
+			if (this.goalTimer >= this.goalDuration) {
+				this.showingGoal = false;
+				this.goalTimer = 0;
+			}
+			
+			// Continue updating physics even during goal celebration
+			// but maybe slow it down or pause players?? idk
+		}
+		
 		// Normal match update
 		this.player1.update(dt);
 		this.player2.update(dt);
 		this.ball.update(dt);
+		
+		// Update all powerups
+		this.powerups.forEach(powerup => powerup.update(dt));
+		
+		// Remove collected powerups
+		this.powerups = this.powerups.filter(p => !p.shouldCleanUp);
+		
+		// Spawn powerups periodically
+		this.powerupSpawnTimer += dt;
+		if (this.powerupSpawnTimer >= this.powerupSpawnInterval) {
+			this.spawnRandomPowerUp();
+			this.powerupSpawnTimer = 0;
+			this.powerupSpawnInterval = 15 + Math.random() * 5; // Random 15-20 seconds
+		}
 		
 		// Update match timer
 		this.matchTimer += dt;
@@ -187,6 +270,7 @@ export default class Match {
 		this.player1.render();
 		this.player2.render();
 		this.ball.render();
+		this.powerups.forEach(powerup => powerup.render());
 		this.ground.render();
 	}
 
@@ -241,6 +325,36 @@ export default class Match {
 		context.fillText(timeString, CANVAS_WIDTH / 2, 80);
 		
 		context.restore();
+		
+		// Render goal animation if active
+		if (this.showingGoal) {
+			context.save();
+			
+			// Pulsing effect based on timer
+			const progress = this.goalTimer / this.goalDuration;
+			const scale = progress < 0.2 ? 1 + progress * 2 : 1.4 - progress * 0.4;
+			
+			context.textAlign = 'center';
+			context.textBaseline = 'middle';
+			
+			// GOAL! text
+			context.font = `${200 * scale}px Arial`;
+			context.fillStyle = 'gold';
+			context.fillText('GOAL!', CANVAS_WIDTH / 2, CANVAS_HEIGHT / 2 - 50);
+			context.strokeStyle = 'darkorange';
+			context.lineWidth = 8;
+			context.strokeText('GOAL!', CANVAS_WIDTH / 2, CANVAS_HEIGHT / 2 - 50);
+			
+			// Player X scored text
+			context.font = '80px Arial';
+			context.fillStyle = 'white';
+			context.fillText(`Player ${this.lastScorer} scored!`, CANVAS_WIDTH / 2, CANVAS_HEIGHT / 2 + 100);
+			context.strokeStyle = 'black';
+			context.lineWidth = 4;
+			context.strokeText(`Player ${this.lastScorer} scored!`, CANVAS_WIDTH / 2, CANVAS_HEIGHT / 2 + 100);
+			
+			context.restore();
+		}
 	}
 
 	isMatchOver() {

@@ -33,6 +33,12 @@
 			"path": "./assets/images/wood.png",
 			"width": 512,
 			"height": 512
+		},
+		{
+			"name": "faces",
+			"path": "./assets/images/facessprites.png",
+			"width": 800,
+			"height": 600
 		}
 	],
 	"fonts": [

@@ -5,6 +5,7 @@ const ImageName = {
 	Sprites: 'sprites',
 	Wood: 'wood',
 	Glass: 'glass',
+	Faces: 'faces',
 };
 
 export default ImageName;

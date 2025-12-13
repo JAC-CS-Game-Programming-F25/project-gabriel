@@ -1,8 +1,11 @@
-import { matter, input, context, world } from '../globals.js';
+import { matter, input, context, world, images } from '../globals.js';
 import BodyType from '../enums/BodyType.js';
 import Input from '../../lib/Input.js';
 import { CANVAS_HEIGHT } from '../globals.js';
 import Ground from './Ground.js';
+import Sprite from '../../lib/Sprite.js';
+import ImageName from '../enums/ImageName.js';
+import FaceSprite from '../enums/FaceSprite.js';
 
 const { Bodies, Body, Composite, Constraint } = matter;
 
@@ -10,6 +13,29 @@ export default class Player {
 	static HEAD_RADIUS = 25;
 	static BOOT_WIDTH = 60;  // Long boot
 	static BOOT_HEIGHT = 20; // Tall boot
+
+	// All 12 face sprites from your sprite sheet (4 characters × 3 expressions)
+	static FACE_SPRITE_MEASUREMENTS = [
+		// Ale
+		{ x: 0, y: 0, width: 200, height: 200 },       // 0: Ale Happy
+		{ x: 200, y: 0, width: 200, height: 200 },     // 1: Ale Normal
+		{ x: 400, y: 0, width: 200, height: 200 },     // 2: Ale Wincing
+		
+		// Cody
+		{ x: 600, y: 0, width: 200, height: 200 },     // 3: Cody Happy
+		{ x: 0, y: 200, width: 200, height: 200 },     // 4: Cody Normal
+		{ x: 200, y: 200, width: 200, height: 200 },   // 5: Cody Wincing
+		
+		// Nik
+		{ x: 400, y: 200, width: 200, height: 200 },   // 6: Nik Happy
+		{ x: 600, y: 200, width: 200, height: 200 },   // 7: Nik Normal
+		{ x: 0, y: 400, width: 200, height: 200 },     // 8: Nik Wincing
+		
+		// Sef
+		{ x: 200, y: 400, width: 200, height: 200 },   // 9: Sef Happy
+		{ x: 400, y: 400, width: 200, height: 200 },   // 10: Sef Normal
+		{ x: 600, y: 400, width: 200, height: 200 },   // 11: Sef Wincing
+	];
 
 	/**
 	 * A player character composed of a head (circle) and boot (rectangle).
@@ -20,9 +46,11 @@ export default class Player {
 	 * @param {number} x
 	 * @param {number} y
 	 * @param {number} playerNumber 1 or 2
+	 * @param {string} character 'Ale', 'Cody', 'Nik', or 'Sef'
 	 */
-	constructor(x, y, playerNumber = 1) {
+	constructor(x, y, playerNumber = 1, character = 'Sef') {
 		this.playerNumber = playerNumber;
+		this.character = character;
 		this.score = 0;
 		this.facingRight = playerNumber === 1; // P1 faces right, P2 faces left
 		this.shouldCleanUp = false;
@@ -86,6 +114,20 @@ export default class Player {
 		this.head.entity = this;
 		this.boot.entity = this;
 		
+		// Generate face sprites
+		this.faceSprites = Player.generateFaceSprites();
+		
+		// Set current sprite based on character
+		this.normalFaceIndex = this.getNormalFaceIndex();
+		this.happyFaceIndex = this.getHappyFaceIndex();
+		this.wincingFaceIndex = this.getWincingFaceIndex();
+		
+		// Start with normal face
+		this.currentFaceSprite = this.normalFaceIndex;
+		
+		// Face expression state
+		this.faceExpressionTimer = 0;
+		
 		// Player 1: WASD, Player 2: Arrow keys
 		this.controls = playerNumber === 1 ? {
 			left: Input.KEYS.A,
@@ -111,6 +153,63 @@ export default class Player {
 		this.hasSuperKick = false;
 		this.superKickTimer = 0;
 	}
+/**
+	 * Generate Sprite objects from the face sprite sheet.
+	 * Returns an array of all 12 face sprites.
+	 */
+	static generateFaceSprites() {
+		return Player.FACE_SPRITE_MEASUREMENTS.map(measurement =>
+			new Sprite(
+				images.get(ImageName.Faces),
+				measurement.x,
+				measurement.y,
+				measurement.width,
+				measurement.height
+			)
+		);
+	}
+
+	/**
+	 * Get the sprite index for this character's normal/default face.
+	 * @returns {number} Index in the faceSprites array
+	 */
+	getNormalFaceIndex() {
+		switch(this.character) {
+			case 'Ale': return FaceSprite.AleNormal;
+			case 'Cody': return FaceSprite.CodyNormal;
+			case 'Nik': return FaceSprite.NikNormal;
+			case 'Sef': return FaceSprite.SefNormal;
+			default: return FaceSprite.AleNormal;
+		}
+	}
+
+	/**
+	 * Get the sprite index for this character's happy face (shown after scoring).
+	 * @returns {number} Index in the faceSprites array
+	 */
+	getHappyFaceIndex() {
+		switch(this.character) {
+			case 'Ale': return FaceSprite.AleHappy;
+			case 'Cody': return FaceSprite.CodyHappy;
+			case 'Nik': return FaceSprite.NikHappy;
+			case 'Sef': return FaceSprite.SefHappy;
+			default: return FaceSprite.AleHappy;
+		}
+	}
+
+	/**
+	 * Get the sprite index for this character's wincing face (shown after getting scored on).
+	 * @returns {number} Index in the faceSprites array
+	 */
+	getWincingFaceIndex() {
+		switch(this.character) {
+			case 'Ale': return FaceSprite.AleWincing;
+			case 'Cody': return FaceSprite.CodyWincing;
+			case 'Nik': return FaceSprite.NikWincing;
+			case 'Sef': return FaceSprite.SefWincing;
+			default: return FaceSprite.AleWincing;
+		}
+	}
 
 	update(dt) {
 		if (this.shouldCleanUp) {
@@ -122,6 +221,28 @@ export default class Player {
 		this.updateKick(dt);
 		this.updateOrientation();
 		this.updatePowerUps(dt);
+		this.updateFaceExpression(dt);
+	}
+
+	updateFaceExpression(dt) {
+		if (this.currentFaceSprite !== this.normalFaceIndex) {
+			this.faceExpressionTimer -= dt;
+			
+			if (this.faceExpressionTimer <= 0) {
+				this.currentFaceSprite = this.normalFaceIndex;
+				this.faceExpressionTimer = 0;
+			}
+		}
+	}
+
+	showHappyFace(duration = 2.0) {
+		this.currentFaceSprite = this.happyFaceIndex;
+		this.faceExpressionTimer = duration;
+	}
+
+	showWincingFace(duration = 2.0) {
+		this.currentFaceSprite = this.wincingFaceIndex;
+		this.faceExpressionTimer = duration;
 	}
 
 	handleMovement() {
@@ -293,45 +414,30 @@ export default class Player {
 	}
 
 	render() {
-		// Render head
+		// Render head WITH SPRITE!
 		context.save();
 		context.translate(this.head.position.x, this.head.position.y);
 		context.rotate(this.head.angle);
+
+		const headScale = this.hasBigHead ? 2.0 : 1.0;
+		const scaledRadius = Player.HEAD_RADIUS * headScale;
 		
-		// Draw head circle
-		context.fillStyle = this.playerNumber === 1 ? '#FF6B9D' : '#4ECDC4';
-		context.beginPath();
-		context.arc(0, 0, Player.HEAD_RADIUS, 0, Math.PI * 2);
-		context.fill();
-		context.strokeStyle = 'black';
-		context.lineWidth = 3;
-		context.stroke();
+		// Calculate scale factor (scaledRadius * 4 is optimal size)
+		const spriteSize = Player.FACE_SPRITE_MEASUREMENTS[0].width; // 200
+		const targetSize = scaledRadius * 4;
+		const scale = targetSize / spriteSize;
 		
-		// Draw face 
-		const eyeOffsetX = this.facingRight ? 8 : -8;
+		// Flip sprite if facing left
+		if (!this.facingRight) {
+			context.scale(-scale, scale);
+		} else {
+			context.scale(scale, scale);
+		}
 		
-		// Eye
-		context.fillStyle = 'white';
-		context.beginPath();
-		context.arc(eyeOffsetX, -5, 6, 0, Math.PI * 2);
-		context.fill();
-		context.strokeStyle = 'black';
-		context.lineWidth = 2;
-		context.stroke();
-		
-		// Pupil
-		context.fillStyle = 'black';
-		context.beginPath();
-		context.arc(eyeOffsetX + (this.facingRight ? 2 : -2), -5, 3, 0, Math.PI * 2);
-		context.fill();
-		
-		// Mouth
-		context.strokeStyle = 'black';
-		context.lineWidth = 2;
-		context.beginPath();
-		context.arc(0, 8, 10, 0, Math.PI);
-		context.stroke();
-		
+		// Render sprite at center (it will be scaled by the context)
+		const spriteOffset = -spriteSize / 2;
+		this.faceSprites[this.currentFaceSprite].render(spriteOffset, spriteOffset);
+
 		context.restore();
 
 		// Render boot 

@@ -39,6 +39,18 @@
 			"path": "./assets/images/facessprites.png",
 			"width": 800,
 			"height": 600
+		},
+		{
+			"name": "big-head-icon",
+			"path": "./assets/images/head-bigger-icon.png"
+		},
+		{
+			"name": "speed-icon",
+			"path": "./assets/images/speed-icon.png"
+		},
+		{
+			"name": "powershot-icon",
+			"path": "./assets/images/powershot-icon.png"
 		}
 	],
 	"fonts": [

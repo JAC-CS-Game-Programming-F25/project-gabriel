@@ -1,6 +1,7 @@
 import PowerUp from './PowerUp.js';
 import PowerUpType from '../enums/PowerUpType.js';
-import { context } from '../globals.js';
+import ImageName from '../enums/ImageName.js';
+import { context, images } from '../globals.js';
 
 export default class BigHead extends PowerUp {
 	/**
@@ -8,6 +9,7 @@ export default class BigHead extends PowerUp {
 	 */
 	constructor(x, y) {
 		super(x, y, PowerUpType.BigHead);
+		this.icon = images.get(ImageName.BigHeadIcon);
 	}
 
 	collect(player) {
@@ -25,21 +27,25 @@ export default class BigHead extends PowerUp {
 	}
 
 	renderIcon() {
-		// Draw expand/size up symbol
-		context.strokeStyle = 'white';
-		context.lineWidth = 3;
-		context.beginPath();
-		context.moveTo(-8, -8);
-		context.lineTo(8, 8);
-		context.moveTo(8, -8);
-		context.lineTo(-8, 8);
-		context.stroke();
+		// Draw the icon sprite centered 
+		const image = this.icon?.image || this.icon;
 		
-		// Draw arrows pointing outwardss
-		context.fillStyle = 'white';
-		context.font = 'bold 20px Arial';
-		context.textAlign = 'center';
-		context.textBaseline = 'middle';
-		context.fillText('↔', 0, 0);
+		if (image && image instanceof HTMLImageElement) {
+			const iconSize = PowerUp.RADIUS * 1.5; // Make icon slightly bigger than circle
+			context.drawImage(
+				image,
+				-iconSize / 2,
+				-iconSize / 2,
+				iconSize,
+				iconSize
+			);
+		} else {
+			// Fallback to emoji if sprite not loaded for some reason
+			context.fillStyle = 'white';
+			context.font = 'bold 20px Arial';
+			context.textAlign = 'center';
+			context.textBaseline = 'middle';
+			context.fillText('↕', 0, 0);
+		}
 	}
 }

@@ -1,6 +1,7 @@
 import PowerUp from './PowerUp.js';
 import PowerUpType from '../enums/PowerUpType.js';
-import { context } from '../globals.js';
+import ImageName from '../enums/ImageName.js';
+import { context, images } from '../globals.js';
 
 export default class SpeedBoost extends PowerUp {
 	/**
@@ -8,6 +9,7 @@ export default class SpeedBoost extends PowerUp {
 	 */
 	constructor(x, y) {
 		super(x, y, PowerUpType.SpeedBoost);
+		this.icon = images.get(ImageName.SpeedIcon);
 	}
 
 	collect(player) {
@@ -25,11 +27,25 @@ export default class SpeedBoost extends PowerUp {
 	}
 
 	renderIcon() {
-		// Draw lightning bolt symbol
-		context.fillStyle = 'white';
-		context.font = 'bold 24px Arial';
-		context.textAlign = 'center';
-		context.textBaseline = 'middle';
-		context.fillText('⚡', 0, 0);
+		// Draw the icon sprite centered
+		const image = this.icon?.image || this.icon;
+		
+		if (image && image instanceof HTMLImageElement) {
+			const iconSize = PowerUp.RADIUS * 1.5; // Make icon slightly bigger than circle
+			context.drawImage(
+				image,
+				-iconSize / 2,
+				-iconSize / 2,
+				iconSize,
+				iconSize
+			);
+		} else {
+			// Fallback to emoji if sprite not loaded for some reason
+			context.fillStyle = 'white';
+			context.font = 'bold 24px Arial';
+			context.textAlign = 'center';
+			context.textBaseline = 'middle';
+			context.fillText('⚡', 0, 0);
+		}
 	}
 }

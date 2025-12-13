@@ -139,10 +139,14 @@ export default class Match {
 		if (goalEntity.playerNumber === 1) {
 			this.player2.addScore();
 			this.lastScorer = 2;
+			this.player2.showHappyFace(2.0);
+			this.player1.showWincingFace(2.0);
 			console.log("Player 2 scored!");
 		} else {
 			this.player1.addScore();
 			this.lastScorer = 1;
+			this.player1.showHappyFace(2.0);
+			this.player2.showWincingFace(2.0);
 			console.log("Player 1 scored!");
 		}
 		

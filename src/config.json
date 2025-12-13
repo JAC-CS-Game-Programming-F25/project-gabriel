@@ -51,6 +51,12 @@
 		{
 			"name": "powershot-icon",
 			"path": "./assets/images/powershot-icon.png"
+		},
+		{
+			"name": "soccer-ball",
+			"path": "./assets/images/soccer-ball.png",
+			"width": 1024,
+			"height": 136
 		}
 	],
 	"fonts": [

@@ -1,11 +1,24 @@
 import Circle from './Circle.js';
 import BodyType from '../enums/BodyType.js';
 import GameEntity from './GameEntity.js';
-import { matter } from '../globals.js';
+import Sprite from '../../lib/Sprite.js';
+import ImageName from '../enums/ImageName.js';
+import { matter, images, context } from '../globals.js';
 
 export default class Ball extends Circle {
 	static RADIUS = 15;
-	static SPRITE_MEASUREMENTS = [{ x: 0, y: 0, width: 30, height: 30 }]; // Placeholder for now
+	
+	// All 8 frames from the soccer ball sprite sheet (1024 x 136)
+	static BALL_SPRITE_MEASUREMENTS = [
+		{ x: 0,   y: 4, width: 128, height: 128 },   // Frame 0
+		{ x: 128, y: 4, width: 128, height: 128 },   // Frame 1
+		{ x: 256, y: 4, width: 128, height: 128 },   // Frame 2
+		{ x: 384, y: 4, width: 128, height: 128 },   // Frame 3
+		{ x: 512, y: 4, width: 128, height: 128 },   // Frame 4
+		{ x: 640, y: 4, width: 128, height: 128 },   // Frame 5
+		{ x: 768, y: 4, width: 128, height: 128 },   // Frame 6
+		{ x: 896, y: 4, width: 128, height: 128 },   // Frame 7
+	];
 
 	constructor(x, y) {
 		super(x, y, Ball.RADIUS, {
@@ -15,17 +28,49 @@ export default class Ball extends Circle {
 			friction: 0.1,
 		});
 
-		this.sprites = GameEntity.generateSprites(Ball.SPRITE_MEASUREMENTS);
-		this.renderOffset = { x: -15, y: -15 };
+		// Generate sprites
+		this.sprites = Ball.generateBallSprites();
+		this.currentFrame = 0;
+		
+		this.renderOffset = { x: -Ball.RADIUS, y: -Ball.RADIUS };
+		
+		// Animation timing
+		this.animationTimer = 0;
+		this.animationSpeed = 0.08; // Time between frames
+	}
+
+	static generateBallSprites() {
+		// Use the same pattern as Angry Birds entities
+		return Ball.BALL_SPRITE_MEASUREMENTS.map(measurement =>
+			new Sprite(
+				images.get(ImageName.SoccerBall),
+				measurement.x,
+				measurement.y,
+				measurement.width,
+				measurement.height
+			)
+		);
 	}
 
 	update(dt) {
 		super.update(dt);
 		
-		// Prevent ball from going too fast (anti-tunneling)
-		const maxSpeed = 50;
+		// Animate the ball when it's moving
 		const velocity = this.body.velocity;
 		const speed = Math.sqrt(velocity.x * velocity.x + velocity.y * velocity.y);
+		
+		// Only animate if ball is moving
+		if (speed > 0.5) {
+			this.animationTimer += dt;
+			
+			if (this.animationTimer >= this.animationSpeed) {
+				this.animationTimer = 0;
+				this.currentFrame = (this.currentFrame + 1) % this.sprites.length;
+			}
+		}
+		
+		// Prevent ball from going too fast (anti-tunneling)
+		const maxSpeed = 50;
 		
 		if (speed > maxSpeed) {
 			// Scale velocity down to max speed
@@ -52,5 +97,45 @@ export default class Ball extends Circle {
 		matter.Body.setPosition(this.body, { x, y });
 		matter.Body.setVelocity(this.body, { x: 0, y: 0 });
 		matter.Body.setAngularVelocity(this.body, 0);
+		this.currentFrame = 0; // Reset animation to first frame
+		this.animationTimer = 0;
+	}
+
+	render() {
+		// Custom render that scales the 128x128 sprite to match hitbox
+		context.save();
+		context.translate(this.body.position.x, this.body.position.y);
+		context.rotate(this.body.angle);
+		
+		// Calculate scale, make sprite slightly bigger to better match visual appearance
+		const spriteSize = 128; // Original sprite width/height
+		const targetSize = Ball.RADIUS * 2.4; // Bigger visual size to match hitbox better
+		const scale = targetSize / spriteSize;
+		
+		// Apply scale
+		context.scale(scale, scale);
+		
+		// Draw sprite centered (sprite is 128x128, so offset by -64, -64)
+		const spriteOffset = -spriteSize / 2;
+		
+		if (this.sprites && this.sprites[this.currentFrame]) {
+			this.sprites[this.currentFrame].render(spriteOffset, spriteOffset);
+		} else {
+			// Fallback if sprite fails to load
+			this.renderFallback();
+		}
+		
+		context.restore();
+	}
+
+	renderFallback() {
+		// Simple white circle fallback (shouldnt ever be needed though)
+		context.fillStyle = '#FFFFFF';
+		context.beginPath();
+		context.arc(0, 0, Ball.RADIUS, 0, Math.PI * 2);
+		context.fill();
+		context.strokeStyle = '#000000';
+		context.lineWidth = 2;
+		context.stroke();
 	}
 }

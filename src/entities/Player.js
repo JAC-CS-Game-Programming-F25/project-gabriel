@@ -153,7 +153,7 @@ export default class Player {
 
 		this.isKicking = false;
 		this.kickTimer = 0;
-		this.kickDuration = 0.15;
+		this.kickDuration = 0.25;
 		
 		// PowerUp effects
 		this.hasSpeedBoost = false;
@@ -430,23 +430,66 @@ export default class Player {
 		this.score++;
 	}
 
+	/**
+	 * Calculate kick animation offset using an arc motion.
+	 * @returns {{x: number, y: number, rotation: number}} offset and rotation for kick
+	 */
+	getKickOffset() {
+		if (!this.isKicking) {
+			return { x: 0, y: 0, rotation: 0 };
+		}
+		
+		// Progress from 0 to 1 through the kick animation
+		const progress = this.kickTimer / this.kickDuration;
+		
+		// Use sine wave for smoothness
+		// 0 -> 1 -> 0 (goes up then back down)
+		const arc = Math.sin(progress * Math.PI);
+		
+		// Kick moves backwards and up in an arc (like winding up)
+		const maxBackwardDistance = 25; // How far backward the kick goes
+		const maxUpwardDistance = 30;   // How high the kick goes
+		const maxRotation = -45;        // Negative rotation (bends backward)
+		
+		// Backward motion follows the arc (neg for backward)
+		const backwardOffset = -arc * maxBackwardDistance;
+		
+		// Upward motion peaks in the middle of the kick
+		const upwardOffset = -arc * maxUpwardDistance;
+		
+		// Rotation, shoe rotates backward during kick 
+		const rotation = arc * maxRotation * (Math.PI / 180); // Convert to radians
+		
+		return {
+			x: backwardOffset,
+			y: upwardOffset,
+			rotation: rotation
+		};
+	}
+
 	render() {
 		const renderYOffset = -10; // Shift both head and shoe up by 15 pixels
+		const kickOffset = this.getKickOffset();
 		
 		// Render boot first (behind head)
 		context.save();
 		context.translate(this.boot.position.x, this.boot.position.y + renderYOffset);
 		
-		const kickOffset = this.isKicking ? 8 : 0;
 		const shoeScale = 2.0;
 		const shoeSize = 34;
 		
+		// Apply kick offset
+		const xOffset = this.facingRight ? kickOffset.x : -kickOffset.x;
+		context.translate(xOffset, kickOffset.y);
+		
+		// Apply rotation around the heel (pivot point)
+		const rotationAngle = this.facingRight ? kickOffset.rotation : -kickOffset.rotation;
+		context.rotate(rotationAngle);
+		
 		if (!this.facingRight) {
 			context.scale(-shoeScale, shoeScale);
-			context.translate(-kickOffset / shoeScale, 0);
 		} else {
 			context.scale(shoeScale, shoeScale);
-			context.translate(kickOffset / shoeScale, 0);
 		}
 		
 		const shoeOffset = -shoeSize / 2;

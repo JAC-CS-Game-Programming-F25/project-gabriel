@@ -79,6 +79,21 @@
 		{
 			"name": "AngryBirds",
 			"path": "./assets/fonts/AngryBirds.ttf"
+		},
+		{
+			"name": "Press Start 2P",
+			"path": "https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap",
+			"isGoogleFont": true
+		},
+		{
+			"name": "Roboto",
+			"path": "https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap",
+			"isGoogleFont": true
+		},
+		{
+			"name": "Bebas Neue",
+			"path": "https://fonts.googleapis.com/css2?family=Bebas+Neue&display=swap",
+			"isGoogleFont": true
 		}
 	],
 	"sounds": [

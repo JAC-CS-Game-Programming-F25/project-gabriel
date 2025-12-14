@@ -31,7 +31,7 @@ export default class VictoryState extends State {
 		this.stadium.render();
 
 		context.save();
-		context.font = '200px Arial';
+		context.font = '120px "Press Start 2P", monospace';
 		context.fillStyle = 'black';
 		context.textBaseline = 'middle';
 		context.textAlign = 'center';
@@ -39,11 +39,11 @@ export default class VictoryState extends State {
 		context.fillStyle = 'gold';
 		context.fillText(`Player ${this.winner} Wins!`, CANVAS_WIDTH / 2 + 5, CANVAS_HEIGHT / 2 - 85);
 		
-		context.font = '80px Arial';
+		context.font = '80px Roboto, sans-serif';
 		context.fillStyle = 'white';
 		context.fillText(`${this.score1} - ${this.score2}`, CANVAS_WIDTH / 2, CANVAS_HEIGHT / 2 + 50);
 		
-		context.font = '50px Arial';
+		context.font = '50px Roboto, sans-serif';
 		context.fillText('Press Enter to Play Again', CANVAS_WIDTH / 2, CANVAS_HEIGHT - 80);
 		context.restore();
 	}

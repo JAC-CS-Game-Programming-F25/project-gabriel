@@ -1,12 +1,14 @@
 import State from '../../lib/State.js';
 import Input from '../../lib/Input.js';
 import GameStateName from '../enums/GameStateName.js';
+import SoundName from '../enums/SoundName.js';
 import {
 	CANVAS_HEIGHT,
 	CANVAS_WIDTH,
 	context,
 	input,
 	stateMachine,
+	sounds,
 } from '../globals.js';
 
 export default class GameOverState extends State {
@@ -16,6 +18,9 @@ export default class GameOverState extends State {
 
 	enter(parameters) {
 		this.stadium = parameters.stadium;
+		
+		// Play end of game sound
+		sounds.play(SoundName.EndOfGame);
 	}
 
 	update() {

@@ -1,4 +1,4 @@
-import { matter, input, context, world, images } from '../globals.js';
+import { matter, input, context, world, images, sounds } from '../globals.js';
 import BodyType from '../enums/BodyType.js';
 import Input from '../../lib/Input.js';
 import { CANVAS_HEIGHT } from '../globals.js';
@@ -6,6 +6,7 @@ import Ground from './Ground.js';
 import Sprite from '../../lib/Sprite.js';
 import ImageName from '../enums/ImageName.js';
 import FaceSprite from '../enums/FaceSprite.js';
+import SoundName from '../enums/SoundName.js';
 
 const { Bodies, Body, Composite, Constraint } = matter;
 
@@ -14,7 +15,7 @@ export default class Player {
 	static BOOT_WIDTH = 60;
 	static BOOT_HEIGHT = 20;
 
-	// All 12 face sprites from your sprite sheet (4 characters × 3 expressions)
+	// All 12 face sprites from your sprite sheet (4 characters x 3 expressions)
 	static FACE_SPRITE_MEASUREMENTS = [
 		// Ale
 		{ x: 0, y: 0, width: 200, height: 200 },       // 0: Ale Happy
@@ -293,6 +294,9 @@ export default class Player {
 	}
 
 	jump() {
+		// Play hop sound
+		sounds.play(SoundName.Hop);
+		
 		// Apply jump force to both head and boot
 		Body.applyForce(this.head, this.head.position, { x: 0, y: -0.35 });
 		Body.applyForce(this.boot, this.boot.position, { x: 0, y: -0.35 });

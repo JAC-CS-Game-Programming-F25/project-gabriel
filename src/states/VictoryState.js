@@ -1,12 +1,14 @@
 import State from '../../lib/State.js';
 import Input from '../../lib/Input.js';
 import GameStateName from '../enums/GameStateName.js';
+import SoundName from '../enums/SoundName.js';
 import {
 	CANVAS_HEIGHT,
 	CANVAS_WIDTH,
 	context,
 	input,
 	stateMachine,
+	sounds,
 } from '../globals.js';
 
 export default class VictoryState extends State {
@@ -19,6 +21,9 @@ export default class VictoryState extends State {
 		this.winner = parameters.winner;
 		this.score1 = parameters.score1;
 		this.score2 = parameters.score2;
+		
+		// Play end of game sound
+		sounds.play(SoundName.EndOfGame);
 	}
 
 	update() {

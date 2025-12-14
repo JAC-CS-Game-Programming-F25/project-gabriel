@@ -2,7 +2,8 @@ import State from '../../lib/State.js';
 import GameStateName from '../enums/GameStateName.js';
 import FaceSprite from '../enums/FaceSprite.js';
 import ImageName from '../enums/ImageName.js';
-import { CANVAS_HEIGHT, CANVAS_WIDTH, context, images, input, stateMachine } from '../globals.js';
+import SoundName from '../enums/SoundName.js';
+import { CANVAS_HEIGHT, CANVAS_WIDTH, context, images, input, stateMachine, sounds } from '../globals.js';
 
 export default class CharacterSelectState extends State {
 	constructor() {
@@ -120,6 +121,7 @@ export default class CharacterSelectState extends State {
 		// Check Player 1 character buttons
 		for (const button of this.player1Buttons) {
 			if (this.isPointInButton(mouseX, mouseY, button)) {
+				sounds.play(SoundName.Click);
 				this.player1Selected = button.characterIndex;
 				return;
 			}
@@ -128,6 +130,7 @@ export default class CharacterSelectState extends State {
 		// Check Player 2 character buttons
 		for (const button of this.player2Buttons) {
 			if (this.isPointInButton(mouseX, mouseY, button)) {
+				sounds.play(SoundName.Click);
 				this.player2Selected = button.characterIndex;
 				return;
 			}
@@ -135,6 +138,7 @@ export default class CharacterSelectState extends State {
 		
 		// Check Back button - goes back to title screen
 		if (this.backButton && this.isPointInButton(mouseX, mouseY, this.backButton)) {
+			sounds.play(SoundName.Click);
 			stateMachine.change(GameStateName.Title);
 			return;
 		}
@@ -142,6 +146,7 @@ export default class CharacterSelectState extends State {
 		// Check Start Match button
 		if (this.startButton && this.isPointInButton(mouseX, mouseY, this.startButton)) {
 			if (this.player1Selected !== null && this.player2Selected !== null) {
+				sounds.play(SoundName.Click);
 				// Both players selected so we can start the match!
 				stateMachine.change(GameStateName.Play, {
 					player1Character: this.characters[this.player1Selected].name,

@@ -1,12 +1,12 @@
 const SoundName = {
-	Bounce: 'bounce',
-	Break1: 'break1',
-	Break2: 'break2',
-	Break3: 'break3',
-	Break4: 'break4',
-	Break5: 'break5',
-	Kill: 'kill',
-	Music: 'music',
+	BackgroundMusic: 'background-music',
+	BallBounce: 'ball-bounce',
+	CrowdCheering: 'crowd-cheering',
+	Hop: 'hop',
+	PowerUpAppear: 'powerup-appear',
+	PowerUpCollect: 'powerup-collect',
+	EndOfGame: 'end-of-game',
+	Click: 'click',
 };
 
 export default SoundName;

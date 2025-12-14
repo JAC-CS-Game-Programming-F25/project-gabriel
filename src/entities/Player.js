@@ -524,4 +524,41 @@ export default class Player {
 
 		context.restore();
 	}
+
+	/**
+	 * Proper cleanup method for Player physics bodies.
+	 * Player has a composite body structure (head + boot + constraint),
+	 * so we need to remove all components individually.
+	 */
+	cleanup() {
+		console.log(`Cleaning up Player ${this.playerNumber}`);
+		
+		// Remove entity references
+		if (this.head) {
+			this.head.entity = null;
+		}
+		if (this.boot) {
+			this.boot.entity = null;
+		}
+		
+		// Remove the composite body 
+		if (this.body) {
+			Composite.remove(world, this.body);
+		}
+
+		// in case they weren't properly removed with the composite
+		if (this.head) {
+			Composite.remove(world, this.head);
+			this.head = null;
+		}
+		if (this.boot) {
+			Composite.remove(world, this.boot);
+			this.boot = null;
+		}
+		
+		// Clear ball reference
+		this.ball = null;
+		
+		console.log(`Player ${this.playerNumber} cleanup complete`);
+	}
 }

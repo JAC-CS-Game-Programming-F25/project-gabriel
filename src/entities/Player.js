@@ -7,6 +7,12 @@ import Sprite from '../../lib/Sprite.js';
 import ImageName from '../enums/ImageName.js';
 import FaceSprite from '../enums/FaceSprite.js';
 import SoundName from '../enums/SoundName.js';
+import StateMachine from '../../lib/StateMachine.js';
+import IdleState from '../states/player/IdleState.js';
+import RunningState from '../states/player/RunningState.js';
+import JumpingState from '../states/player/JumpingState.js';
+import FallingState from '../states/player/FallingState.js';
+import KickingState from '../states/player/KickingState.js';
 
 const { Bodies, Body, Composite, Constraint } = matter;
 
@@ -56,6 +62,8 @@ export default class Player {
 		this.facingRight = playerNumber === 1; // P1 faces right, P2 faces left
 		this.shouldCleanUp = false;
 		this.ball = null;
+		this.input = input; // Store reference to input for states to access
+		this.input = input; // Store reference to input
 
 		// Create the boot FIRST (it's the main body on the ground)
 		this.boot = Bodies.rectangle(
@@ -163,6 +171,17 @@ export default class Player {
 		this.bigHeadTimer = 0;
 		this.hasSuperKick = false;
 		this.superKickTimer = 0;
+
+		// Initialize state machine, states handle movement, jumping, and kicking
+		this.stateMachine = new StateMachine();
+		this.stateMachine.add('idle', new IdleState(this));
+		this.stateMachine.add('running', new RunningState(this));
+		this.stateMachine.add('jumping', new JumpingState(this));
+		this.stateMachine.add('falling', new FallingState(this));
+		this.stateMachine.add('kicking', new KickingState(this));
+		
+		// Start in idle state
+		this.stateMachine.change('idle');
 	}
 /**
 	 * Generate Sprite objects from the face sprite sheet.
@@ -228,10 +247,19 @@ export default class Player {
 			return;
 		}
 
-		this.handleMovement();
+		// Update state machine (handles movement and state transitions)
+		this.stateMachine.update(dt);
+		
+		// Update kick animation timer (state machine sets isKicking)
 		this.updateKick(dt);
+		
+		// Update orientation (keep player upright)
 		this.updateOrientation();
+		
+		// Update power-ups
 		this.updatePowerUps(dt);
+		
+		// Update face expression
 		this.updateFaceExpression(dt);
 	}
 
@@ -254,60 +282,6 @@ export default class Player {
 	showWincingFace(duration = 2.0) {
 		this.currentFaceSprite = this.wincingFaceIndex;
 		this.faceExpressionTimer = duration;
-	}
-
-	handleMovement() {
-		const baseSpeed = 0.04; // Increased for more responsive movement
-		const speedMultiplier = this.hasSpeedBoost ? 1.8 : 1.0; // 80% faster with speed boost
-		const onGround = this.isOnGround();
-		
-		// Reduce air control so only 30% of ground control when in air
-		const airControlMultiplier = onGround ? 1.0 : 0.3;
-		const speed = baseSpeed * speedMultiplier * airControlMultiplier;
-		const maxSpeed = 7 * speedMultiplier; 
-		
-		const bootVelocity = this.boot.velocity;
-		
-		// Left movement
-		if (input.isKeyHeld(this.controls.left)) {
-			if (bootVelocity.x > -maxSpeed) {
-				Body.applyForce(this.boot, this.boot.position, { x: -speed, y: 0 });
-			}
-		}
-		
-		// Right movement
-		if (input.isKeyHeld(this.controls.right)) {
-			if (bootVelocity.x < maxSpeed) {
-				Body.applyForce(this.boot, this.boot.position, { x: speed, y: 0 });
-			}
-		}
-		
-		// Jump
-		if (input.isKeyPressed(this.controls.jump) && onGround) {
-			this.jump();
-		}
-		
-		// Kick
-		if (input.isKeyPressed(this.controls.kick) && !this.isKicking) {
-			this.kick();
-		}
-	}
-
-	jump() {
-		// Play hop sound
-		sounds.play(SoundName.Hop);
-		
-		// Apply jump force to both head and boot
-		Body.applyForce(this.head, this.head.position, { x: 0, y: -0.35 });
-		Body.applyForce(this.boot, this.boot.position, { x: 0, y: -0.35 });
-	}
-
-	kick() {
-		this.isKicking = true;
-		this.kickTimer = 0;
-		
-		// Check if ball is nearby and kick it
-		this.checkAndKickBall();
 	}
 
 	checkAndKickBall() {

@@ -1,6 +1,12 @@
 import Circle from './Circle.js';
 import BodyType from '../enums/BodyType.js';
 import { matter, context } from '../globals.js';
+import StateMachine from '../../lib/StateMachine.js';
+import InactiveState from '../states/powerup/InactiveState.js';
+import SpawningState from '../states/powerup/SpawningState.js';
+import ActiveOnFieldState from '../states/powerup/ActiveOnFieldState.js';
+import CollectedState from '../states/powerup/CollectedState.js';
+import EffectActiveState from '../states/powerup/EffectActiveState.js';
 
 export default class PowerUp extends Circle {
 	static RADIUS = 20;
@@ -24,36 +30,57 @@ export default class PowerUp extends Circle {
 		this.type = type;
 		this.shouldCleanUp = false;
 		this.collected = false;
+		this.visible = true;
+		this.spawning = false;
+		this.activeOnField = false;
 		
 		// Visual bobbing animation
 		this.bobTimer = 0;
 		this.bobSpeed = 2;
 		this.bobAmount = 10;
 		this.baseY = y;
+
+		// Initialize state machine
+		this.stateMachine = new StateMachine();
+		this.stateMachine.add('inactive', new InactiveState(this));
+		this.stateMachine.add('spawning', new SpawningState(this));
+		this.stateMachine.add('active-on-field', new ActiveOnFieldState(this));
+		this.stateMachine.add('collected', new CollectedState(this));
+		this.stateMachine.add('effect-active', new EffectActiveState(this));
+		
+		// Start directly in spawning state (since theyre created when needed)
+		this.stateMachine.change('spawning');
 	}
 
 	update(dt) {
 		super.update(dt);
 		
-		// Bobbing up and down animation
-		this.bobTimer += dt * this.bobSpeed;
-		const offset = Math.sin(this.bobTimer) * this.bobAmount;
-		matter.Body.setPosition(this.body, {
-			x: this.body.position.x,
-			y: this.baseY + offset
-		});
+		// Update state machine
+		this.stateMachine.update(dt);
 	}
 
 	collect(player) {
-		// Override this in subclasses
-		this.collected = true;
-		this.shouldCleanUp = true;
+		// Transition to collected state
+		this.stateMachine.change('collected', player);
 	}
 
 	render() {
+		// Don't render if not visible
+		if (!this.visible) return;
+		
 		// Will be overridden by subclasses with specific colors/icons
 		context.save();
 		context.translate(this.body.position.x, this.body.position.y);
+		
+		// Spawn animation - scale up from 0
+		if (this.spawning) {
+			const spawnState = this.stateMachine.currentState;
+			if (spawnState && spawnState.spawnAnimationTimer !== undefined) {
+				const progress = spawnState.spawnAnimationTimer / spawnState.spawnAnimationDuration;
+				const scale = Math.min(progress, 1.0);
+				context.scale(scale, scale);
+			}
+		}
 		
 		// Draw circle with glow effect
 		context.shadowBlur = 20;

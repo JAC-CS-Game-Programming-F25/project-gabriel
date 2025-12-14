@@ -10,6 +10,7 @@ const ImageName = {
 	SpeedIcon: 'speed-icon',
 	PowerShotIcon: 'powershot-icon',
 	SoccerBall: 'soccer-ball',
+	Shoe: 'shoe',
 };
 
 export default ImageName;

@@ -63,6 +63,12 @@
 			"path": "./assets/images/shoe.png",
 			"width": 34,
 			"height": 34
+		},
+		{
+			"name": "soccer-net",
+			"path": "./assets/images/soccer-net.png",
+			"width": 1308,
+			"height": 2059
 		}
 	],
 	"fonts": [

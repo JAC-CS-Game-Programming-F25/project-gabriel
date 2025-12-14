@@ -46,9 +46,9 @@ export default class Match {
 			wallThickness
 		);
 		
-		// Create goals at both ends
-		this.goal1 = new Goal(50, CANVAS_HEIGHT - Ground.GRASS.height - Goal.HEIGHT / 2, 1);
-		this.goal2 = new Goal(CANVAS_WIDTH - 50, CANVAS_HEIGHT - Ground.GRASS.height - Goal.HEIGHT / 2, 2);
+		// Create goals at both edges of the screen
+		this.goal1 = new Goal(0, CANVAS_HEIGHT - Ground.GRASS.height - Goal.HEIGHT, 1);
+		this.goal2 = new Goal(CANVAS_WIDTH - Goal.WIDTH, CANVAS_HEIGHT - Ground.GRASS.height - Goal.HEIGHT, 2);
 		
 		// Create 2 players on opposite sides
 		this.player1 = new Player(300, CANVAS_HEIGHT - Ground.GRASS.height - 100, 1);
@@ -126,7 +126,7 @@ export default class Match {
 		const goalEntity = goalBody.entity;
 		
 		// Check if ball is below the crossbar level
-		const goalTopY = goalBody.position.y - Goal.HEIGHT / 2;
+		const goalTopY = goalBody.position.y - Goal.ACTUAL_NET_HEIGHT / 2;
 		const ballY = ballBody.position.y;
 		
 		if (ballY < goalTopY + 15) {

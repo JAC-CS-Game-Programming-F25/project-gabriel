@@ -11,6 +11,7 @@ const ImageName = {
 	PowerShotIcon: 'powershot-icon',
 	SoccerBall: 'soccer-ball',
 	Shoe: 'shoe',
+	SoccerNet: 'soccer-net',
 };
 
 export default ImageName;

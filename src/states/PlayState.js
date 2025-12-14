@@ -5,7 +5,7 @@ import SoundName from '../enums/SoundName.js';
 import Match from '../objects/Match.js';
 import { engine, input, matter, sounds, stateMachine, world } from '../globals.js';
 
-const { Composite, Engine } = matter;
+const { Composite, Engine, Body } = matter;
 
 export default class PlayState extends State {
 	constructor() {
@@ -16,12 +16,36 @@ export default class PlayState extends State {
 		// If resuming from pause, use the existing match
 		if (parameters.match) {
 			this.match = parameters.match;
+			
+			// When resuming from pause, ensure physics state is clean
+			// Reset velocities to prevent accumulated drift while paused
+			Composite.allBodies(world).forEach((body) => {
+				if (!body.isStatic && !body.isSensor) {
+					// The physics engine pause/resume handles this now
+					
+					// Only reset angular velocity to prevent spinning issues
+					Body.setAngularVelocity(body, 0);
+				}
+			});
+			
 			sounds.play(SoundName.BackgroundMusic);
 		} else {
-			// Starting new match - clean up any existing physics bodies first
-			Composite.allBodies(world).forEach((body) =>
-				Composite.remove(world, body)
-			);
+			// Starting new match - properly cleanup old match first
+			if (this.match) {
+				console.log("Cleaning up old match before creating new one...");
+				this.match.cleanup();
+			}
+			
+			// Clean up any remaining physics bodies
+			const bodiesToRemove = Composite.allBodies(world);
+			console.log(`Removing ${bodiesToRemove.length} bodies from world`);
+			bodiesToRemove.forEach((body) => {
+				Composite.remove(world, body);
+			});
+			
+			// Clear Matter.js internal caches
+			// This makes sure no ghost collisions from previous matches
+			Composite.clear(world, false);
 			
 			sounds.play(SoundName.BackgroundMusic);
 			
@@ -29,13 +53,15 @@ export default class PlayState extends State {
 			const player1Character = parameters.player1Character || 'CODY';
 			const player2Character = parameters.player2Character || 'ALE';
 			
+			// Create fresh match
+			console.log(`Creating new match: ${player1Character} vs ${player2Character}`);
 			this.match = new Match(player1Character, player2Character);
 		}
 	}
 
 	exit() {
-		// Only clean up if we're not pausing
-		// Pausing will preserve the match state
+		// When exiting play state, we handle cleanup in the destination state
+		// Pause state will preserve match, others will call cleanup
 	}
 
 	update(dt) {
@@ -48,12 +74,20 @@ export default class PlayState extends State {
 			return;
 		}
 
+		// Update physics engine
+		// This should only run when PlayState is active (not during pause)
 		Engine.update(engine);
+		
+		// Update match logic
 		this.match.update(dt);
 		
 		// Check if match is over
 		if (this.match.isMatchOver()) {
-			// Clean up physics bodies before transitioning
+			// Clean up match before transitioning
+			console.log("Match over, cleaning up...");
+			this.match.cleanup();
+			
+			// Additional safety: clean up any remaining bodies
 			Composite.allBodies(world).forEach((body) =>
 				Composite.remove(world, body)
 			);

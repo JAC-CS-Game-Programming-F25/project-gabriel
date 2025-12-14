@@ -6,6 +6,7 @@ import {
 	CANVAS_HEIGHT,
 	CANVAS_WIDTH,
 	context,
+	engine,
 	input,
 	sounds,
 	stateMachine,
@@ -23,10 +24,19 @@ export default class PauseState extends State {
 		this.match = parameters.match;
 		this.stadium = parameters.stadium;
 		sounds.pause(SoundName.BackgroundMusic);
+		
+		// Pause the physics engine completely
+		// This prevents bodies from drifting while the game is paused
+		engine.timing.timeScale = 0;
+		
 		this.calculateButtonPositions();
 	}
 
 	exit() {
+		// Resume the physics engine
+		// Restore normal physics simulation speed
+		engine.timing.timeScale = 1;
+		
 		if (this.selectedOption !== 2) {
 			sounds.play(SoundName.BackgroundMusic);
 		}
@@ -86,9 +96,17 @@ export default class PauseState extends State {
 			});
 		}
 		if (input.isKeyPressed(Input.KEYS.R)) {
+			// Properly cleanup old match before restarting
+			if (this.match) {
+				this.match.cleanup();
+			}
 			stateMachine.change(GameStateName.Play);
 		}
 		if (input.isKeyPressed(Input.KEYS.Q) || input.isKeyPressed(Input.KEYS.ESCAPE)) {
+			// Cleanup match when quitting
+			if (this.match) {
+				this.match.cleanup();
+			}
 			sounds.stop(SoundName.BackgroundMusic);
 			stateMachine.change(GameStateName.Title);
 		}
@@ -97,14 +115,23 @@ export default class PauseState extends State {
 	handleSelection() {
 		switch (this.selectedOption) {
 			case 0:
+				// Resume so just return to PlayState with existing match
 				stateMachine.change(GameStateName.Play, {
 					match: this.match,
 				});
 				break;
 			case 1:
+				// Cleanup old match before restarting
+				if (this.match) {
+					this.match.cleanup();
+				}
 				stateMachine.change(GameStateName.Play);
 				break;
 			case 2:
+				// Cleanup match when quitting to menu
+				if (this.match) {
+					this.match.cleanup();
+				}
 				sounds.stop(SoundName.BackgroundMusic);
 				stateMachine.change(GameStateName.Title);
 				break;
@@ -118,86 +145,99 @@ export default class PauseState extends State {
 		const mousePos = input.getMousePosition();
 
 		context.save();
+
+		// Semi transparent overlay
 		context.fillStyle = 'rgba(0, 0, 0, 0.7)';
 		context.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
 
+		// Calculate panel dimensions
 		const panelWidth = 960;
 		const panelHeight = 520;
 		const panelX = (CANVAS_WIDTH - panelWidth) / 2;
 		const panelY = (CANVAS_HEIGHT - panelHeight) / 2;
 
-		context.fillStyle = '#1e293b';
-		context.fillRect(panelX, panelY, panelWidth, panelHeight);
-
-		context.strokeStyle = '#ef4444';
+		// Main panel with border
+		context.fillStyle = '#1a1a2e';
+		context.strokeStyle = '#e94560';
 		context.lineWidth = 6;
+		context.fillRect(panelX, panelY, panelWidth, panelHeight);
 		context.strokeRect(panelX, panelY, panelWidth, panelHeight);
 
-		context.fillStyle = '#ef4444';
+		// Title
 		context.font = '80px "Press Start 2P", monospace';
+		context.fillStyle = '#e94560';
 		context.textAlign = 'center';
-		context.textBaseline = 'middle';
-		context.fillText('II PAUSED', CANVAS_WIDTH / 2, panelY + 70);
+		context.fillText('PAUSED', CANVAS_WIDTH / 2, panelY + 100);
 
-		context.fillStyle = '#94a3b8';
-		context.font = '24px Roboto, sans-serif';
-		context.fillText('Game is paused', CANVAS_WIDTH / 2, panelY + 130);
+		// Subtitle
+		context.font = '28px Roboto, sans-serif';
+		context.fillStyle = '#ffffff';
+		context.fillText('Game is paused', CANVAS_WIDTH / 2, panelY + 145);
 
-		// Draw buttons with hover effect
-		for (const button of this.buttons) {
+		// Draw buttons
+		for (let i = 0; i < this.buttons.length; i++) {
+			const button = this.buttons[i];
 			const isHovered = this.isPointInButton(mousePos.x, mousePos.y, button);
-
-			if (isHovered) {
-				context.fillStyle = '#ef4444';
-				context.fillRect(button.x, button.y, button.width, button.height);
-			} else {
-				context.strokeStyle = '#ef4444';
-				context.lineWidth = 3;
-				context.strokeRect(button.x, button.y, button.width, button.height);
-			}
-
-			context.fillStyle = isHovered ? 'white' : '#ef4444';
-			context.font = '28px "Press Start 2P", monospace';
+			
+			// Button background
+			context.fillStyle = isHovered ? '#e94560' : '#16213e';
+			context.fillRect(button.x, button.y, button.width, button.height);
+			
+			// Button border
+			context.strokeStyle = isHovered ? '#ffffff' : '#e94560';
+			context.lineWidth = 3;
+			context.strokeRect(button.x, button.y, button.width, button.height);
+			
+			// Button text with icons
+			const icons = ['▶', '🔄', '🏠'];
+			context.font = '32px Roboto, sans-serif';
+			context.fillStyle = isHovered ? '#ffffff' : '#ffffff';
 			context.textAlign = 'center';
-			context.textBaseline = 'middle';
-			
-			let icon = '';
-			if (button.index === 0) icon = '▶ ';
-			else if (button.index === 1) icon = '🔄 ';
-			else if (button.index === 2) icon = '🏠 ';
-			
-			context.fillText(icon + this.options[button.index], CANVAS_WIDTH / 2, button.y + button.height / 2);
+			context.fillText(
+				`${icons[i]} ${this.options[i]}`,
+				button.x + button.width / 2,
+				button.y + button.height / 2 + 10
+			);
 		}
 
-		// Score section - much smaller and at the very bottom
-		const scoreY = panelY + panelHeight - 90;
-		context.fillStyle = '#94a3b8';
-		context.font = '14px Roboto, sans-serif';
-		context.fillText('PLAYER 1', CANVAS_WIDTH / 2 - 150, scoreY);
-		context.fillText('VS', CANVAS_WIDTH / 2, scoreY);
-		context.fillText('PLAYER 2', CANVAS_WIDTH / 2 + 150, scoreY);
+		// Divider line
+		context.strokeStyle = '#e94560';
+		context.lineWidth = 2;
+		context.beginPath();
+		context.moveTo(panelX + 100, panelY + 400);
+		context.lineTo(panelX + panelWidth - 100, panelY + 400);
+		context.stroke();
 
-		context.font = 'bold 32px "Press Start 2P", monospace';
-		context.fillStyle = '#4ade80';
-		context.fillText(this.match.player1.score, CANVAS_WIDTH / 2 - 150, scoreY + 32);
-		context.fillStyle = '#ef4444';
-		context.fillText('vs', CANVAS_WIDTH / 2, scoreY + 32);
-		context.fillStyle = '#3b82f6';
-		context.fillText(this.match.player2.score, CANVAS_WIDTH / 2 + 150, scoreY + 32);
-
-		const timeRemaining = Math.max(0, Math.floor(this.match.timeRemaining));
-		const minutes = Math.floor(timeRemaining / 60);
-		const seconds = timeRemaining % 60;
-		const timeString = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+		// Score display
+		context.font = '36px Roboto, sans-serif';
+		context.fillStyle = '#ffffff';
+		context.textAlign = 'left';
+		context.fillText('PLAYER 1', panelX + 150, panelY + 445);
+		context.fillStyle = '#4ecca3';
+		context.font = 'bold 50px Roboto, sans-serif';
+		context.fillText(this.match.player1.score, panelX + 200, panelY + 490);
 		
-		context.fillStyle = '#fbbf24';
-		context.font = '18px "Press Start 2P", monospace';
-		context.fillText(`Time: ${timeString}`, CANVAS_WIDTH / 2, scoreY + 65);
-
-		context.fillStyle = '#64748b';
-		context.font = '14px Roboto, sans-serif';
-		context.fillText('Hover to select | Click to confirm | P: Resume | R: Restart | Q/Esc: Quit', 
-			CANVAS_WIDTH / 2, CANVAS_HEIGHT - 30);
+		context.fillStyle = '#ffffff';
+		context.font = '36px Roboto, sans-serif';
+		context.textAlign = 'right';
+		context.fillText('PLAYER 2', panelX + panelWidth - 150, panelY + 445);
+		context.fillStyle = '#4ecca3';
+		context.font = 'bold 50px Roboto, sans-serif';
+		context.fillText(this.match.player2.score, panelX + panelWidth - 200, panelY + 490);
+		
+		// VS
+		context.fillStyle = '#e94560';
+		context.font = 'bold 40px Roboto, sans-serif';
+		context.textAlign = 'center';
+		context.fillText('VS', CANVAS_WIDTH / 2, panelY + 470);
+		
+		// Time Remaining
+		const minutes = Math.floor(this.match.timeRemaining / 60);
+		const seconds = this.match.timeRemaining % 60;
+		const timeString = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+		context.fillStyle = '#ffffff';
+		context.font = '24px Roboto, sans-serif';
+		context.fillText(`Time Remaining: ${timeString}`, CANVAS_WIDTH / 2, panelY + 505);
 
 		context.restore();
 	}

@@ -5,11 +5,11 @@ import Ball from "../entities/Ball.js";
 import Goal from "../entities/Goal.js";
 import Wall from "../entities/Wall.js";
 import PowerUpFactory from "./PowerUpFactory.js";
-import { context, CANVAS_WIDTH, CANVAS_HEIGHT, matter, engine, sounds } from "../globals.js";
+import { context, CANVAS_WIDTH, CANVAS_HEIGHT, matter, engine, sounds, world } from "../globals.js";
 import BodyType from "../enums/BodyType.js";
 import SoundName from "../enums/SoundName.js";
 
-const { Events } = matter;
+const { Events, Composite, Body } = matter;
 
 export default class Match {
 	/**
@@ -82,13 +82,8 @@ export default class Match {
 		this.powerupSpawnTimer = 0;
 		this.powerupSpawnInterval = 15 + Math.random() * 5; // 15-20 seconds
 		
-		// Setup collision detection
-		this.setupCollisions();
-	}
-
-	setupCollisions() {
-		// Listen for collision events on the engine
-		Events.on(engine, 'collisionStart', (event) => {
+		// Store reference to collision handler for proper cleanup
+		this.collisionHandler = (event) => {
 			event.pairs.forEach((pair) => {
 				const { bodyA, bodyB } = pair;
 				
@@ -112,7 +107,73 @@ export default class Match {
 					this.handlePowerUpCollection(bodyA, bodyB);
 				}
 			});
+		};
+		
+		// Setup collision detection
+		this.setupCollisions();
+	}
+
+	setupCollisions() {
+		// This allows us to properly remove it later in cleanup()
+		Events.on(engine, 'collisionStart', this.collisionHandler);
+	}
+	
+	/**
+	 * Cleanup method to properly remove all physics bodies
+	 * and event listeners when a match ends or is restarted.
+	 */
+	cleanup() {
+		console.log("Match cleanup starting...");
+		
+		// Remove collision event listener
+		Events.off(engine, 'collisionStart', this.collisionHandler);
+		
+		// Cleanup all powerups
+		this.powerups.forEach(powerup => {
+			if (powerup.body) {
+				Composite.remove(world, powerup.body);
+			}
 		});
+		this.powerups = [];
+		
+		// Cleanup players (they have composite bodies)
+		if (this.player1) {
+			this.player1.cleanup();
+		}
+		if (this.player2) {
+			this.player2.cleanup();
+		}
+		
+		// Cleanup ball
+		if (this.ball && this.ball.body) {
+			Composite.remove(world, this.ball.body);
+		}
+		
+		// Cleanup goals
+		if (this.goal1 && this.goal1.body) {
+			Composite.remove(world, this.goal1.body);
+		}
+		if (this.goal2 && this.goal2.body) {
+			Composite.remove(world, this.goal2.body);
+		}
+		
+		// Cleanup walls
+		if (this.leftWall && this.leftWall.body) {
+			Composite.remove(world, this.leftWall.body);
+		}
+		if (this.rightWall && this.rightWall.body) {
+			Composite.remove(world, this.rightWall.body);
+		}
+		if (this.topWall && this.topWall.body) {
+			Composite.remove(world, this.topWall.body);
+		}
+		
+		// Cleanup ground
+		if (this.ground && this.ground.body) {
+			Composite.remove(world, this.ground.body);
+		}
+		
+		console.log("Match cleanup complete!");
 	}
 
 	isBallGoalCollision(bodyA, bodyB) {
@@ -165,8 +226,6 @@ export default class Match {
 		
 		// Reset ball to center
 		this.ball.reset(CANVAS_WIDTH / 2, CANVAS_HEIGHT - Ground.GRASS.height - 200);
-		
-		// TODO: Play goal sound
 	}
 
 	handleKick(bodyA, bodyB) {
@@ -185,7 +244,7 @@ export default class Match {
 			// Head hit lighter touch natural physics
 			// Ball gets extra bounce from head collision
 			const headDirection = player.facingRight ? 1 : -1;
-			matter.Body.applyForce(ballBody, ballBody.position, {
+			Body.applyForce(ballBody, ballBody.position, {
 				x: headDirection * 0.1,
 				y: -0.06,
 			});
@@ -264,7 +323,6 @@ export default class Match {
 			}
 			
 			// Continue updating physics even during goal celebration
-			// but maybe slow it down or pause players?? idk
 		}
 		
 		// Normal match update

@@ -22,6 +22,7 @@ import CharacterSelectState from './states/CharacterSelectState.js';
 import PlayState from './states/PlayState.js';
 import GameOverState from './states/GameOverState.js';
 import VictoryState from './states/VictoryState.js';
+import PauseState from './states/PauseState.js';
 
 // Set the dimensions of the play area.
 canvas.width = CANVAS_WIDTH;
@@ -49,6 +50,7 @@ stateMachine.add(GameStateName.CharacterSelect, new CharacterSelectState());
 stateMachine.add(GameStateName.GameOver, new GameOverState());
 stateMachine.add(GameStateName.Victory, new VictoryState());
 stateMachine.add(GameStateName.Play, new PlayState());
+stateMachine.add(GameStateName.Pause, new PauseState());
 
 // Start with title screen
 stateMachine.change(GameStateName.Title);

@@ -5,6 +5,7 @@ const GameStateName = {
 	Play: 'play',
 	Victory: 'victory',
 	Pause: 'pause',
+	Settings: 'settings',
 };
 
 export default GameStateName;

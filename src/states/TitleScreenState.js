@@ -108,8 +108,7 @@ export default class TitleScreenState extends State {
 		// Check Settings button
 		if (this.isPointInButton(mouseX, mouseY, this.settingsButton)) {
 			sounds.play(SoundName.Click);
-			// TODO: Implement settings screen at some point
-			console.log('Settings clicked');
+			stateMachine.change(GameStateName.Settings);
 			return;
 		}
 	}

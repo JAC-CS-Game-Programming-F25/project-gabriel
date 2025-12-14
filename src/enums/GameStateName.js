@@ -1,4 +1,5 @@
 const GameStateName = {
+	Title: 'title',
 	CharacterSelect: 'character-select',
 	GameOver: 'game-over',
 	Play: 'play',

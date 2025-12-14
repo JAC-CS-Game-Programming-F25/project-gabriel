@@ -15,7 +15,7 @@ export default class Match {
 	 * Represents a single Head Soccer match between two players.
 	 * Includes the field, players, ball, goals, timer, and scoring.
 	 */
-	constructor(player1Character = "CODY", player2Character = "ALE") {
+	constructor(player1Character = "Cody", player2Character = "Ale") {
 		this.stadium = new Stadium();
 		this.ground = new Ground();
 		

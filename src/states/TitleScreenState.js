@@ -172,7 +172,7 @@ export default class TitleScreenState extends State {
 
 	drawTitle() {
 		context.fillStyle = this.titleColor;
-		context.font = 'bold 72px Arial, sans-serif';
+		context.font = 'bold 60px "Press Start 2P", monospace';
 		context.textAlign = 'center';
 		context.textBaseline = 'top';
 		
@@ -182,7 +182,7 @@ export default class TitleScreenState extends State {
 
 	drawSubtitle() {
 		context.fillStyle = this.subtitleColor;
-		context.font = '18px Arial, sans-serif';
+		context.font = '18px Roboto, sans-serif';
 		context.textAlign = 'center';
 		context.textBaseline = 'top';
 		
@@ -227,7 +227,7 @@ export default class TitleScreenState extends State {
 		context.strokeRect(this.startButton.x, this.startButton.y, this.startButton.width, this.startButton.height);
 		
 		context.fillStyle = this.textColor;
-		context.font = 'bold 22px Arial, sans-serif';
+		context.font = 'bold 22px Roboto, sans-serif';
 		context.textAlign = 'center';
 		context.textBaseline = 'middle';
 		context.fillText(
@@ -245,7 +245,7 @@ export default class TitleScreenState extends State {
 		context.strokeRect(this.settingsButton.x, this.settingsButton.y, this.settingsButton.width, this.settingsButton.height);
 		
 		context.fillStyle = this.textColor;
-		context.font = 'bold 20px Arial, sans-serif';
+		context.font = 'bold 20px Roboto, sans-serif';
 		context.textAlign = 'center';
 		context.textBaseline = 'middle';
 		context.fillText(
@@ -273,7 +273,7 @@ export default class TitleScreenState extends State {
 		
 		// Stats title
 		context.fillStyle = this.titleColor;
-		context.font = 'bold 16px Arial, sans-serif';
+		context.font = 'bold 16px Roboto, sans-serif';
 		context.textAlign = 'center';
 		context.textBaseline = 'top';
 		context.fillText('📋 CAREER STATS', statsX + statsWidth / 2, statsY + 12);
@@ -283,7 +283,7 @@ export default class TitleScreenState extends State {
 		const statSpacing = statsWidth / 4;
 		
 		context.fillStyle = this.textColor;
-		context.font = 'bold 32px Arial, sans-serif';
+		context.font = 'bold 32px Roboto, sans-serif';
 		context.textAlign = 'center';
 		context.textBaseline = 'middle';
 		
@@ -298,7 +298,7 @@ export default class TitleScreenState extends State {
 		
 		// Labels
 		context.fillStyle = this.subtitleColor;
-		context.font = '12px Arial, sans-serif';
+		context.font = '12px Roboto, sans-serif';
 		context.textAlign = 'center';
 		context.textBaseline = 'top';
 		

@@ -208,7 +208,7 @@ export default class CharacterSelectState extends State {
 
 	drawTitle() {
 		context.fillStyle = this.player1Color;
-		context.font = 'bold 44px Arial, sans-serif';
+		context.font = 'bold 44px \"Press Start 2P\", monospace';
 		context.textAlign = 'center';
 		context.textBaseline = 'top';
 		
@@ -217,7 +217,7 @@ export default class CharacterSelectState extends State {
 	}
 
 	drawPlayerLabels() {
-		context.font = 'bold 26px Arial, sans-serif';
+		context.font = 'bold 26px Roboto, sans-serif';
 		context.textAlign = 'center';
 		context.textBaseline = 'top';
 		
@@ -268,7 +268,7 @@ export default class CharacterSelectState extends State {
 			
 			// Draw character name
 			context.fillStyle = this.textColor;
-			context.font = 'bold 16px Arial, sans-serif';
+			context.font = 'bold 16px Roboto, sans-serif';
 			context.textAlign = 'center';
 			context.textBaseline = 'bottom';
 			context.fillText(
@@ -321,7 +321,7 @@ export default class CharacterSelectState extends State {
 
 	drawVSText() {
 		context.fillStyle = this.player1Color;
-		context.font = 'bold 52px Arial, sans-serif';
+		context.font = 'bold 52px Roboto, sans-serif';
 		context.textAlign = 'center';
 		context.textBaseline = 'middle';
 		
@@ -332,7 +332,7 @@ export default class CharacterSelectState extends State {
 	}
 
 	drawStatusText() {
-		context.font = '18px Arial, sans-serif';
+		context.font = '18px Roboto, sans-serif';
 		context.textAlign = 'center';
 		context.textBaseline = 'top';
 		
@@ -344,28 +344,28 @@ export default class CharacterSelectState extends State {
 			context.fillStyle = this.selectedColor;
 			context.fillText('✓ READY', p1StatusX, statusY);
 			context.fillStyle = '#94a3b8';
-			context.font = '14px Arial, sans-serif';
+			context.font = '14px Roboto, sans-serif';
 			context.fillText('Click to select character', p1StatusX, statusY + 28);
 		} else {
 			context.fillStyle = '#94a3b8';
 			context.fillText('SELECT CHARACTER', p1StatusX, statusY);
-			context.font = '14px Arial, sans-serif';
+			context.font = '14px Roboto, sans-serif';
 			context.fillText('Click to select character', p1StatusX, statusY + 28);
 		}
 		
 		// Player 2 status
 		const p2StatusX = this.panelX + this.panelWidth - this.gridStartX - this.buttonSize - this.buttonSpacing / 2;
-		context.font = '18px Arial, sans-serif';
+		context.font = '18px Roboto, sans-serif';
 		if (this.player2Selected !== null) {
 			context.fillStyle = this.selectedColor;
 			context.fillText('✓ READY', p2StatusX, statusY);
 			context.fillStyle = '#94a3b8';
-			context.font = '14px Arial, sans-serif';
+			context.font = '14px Roboto, sans-serif';
 			context.fillText('Click to select character', p2StatusX, statusY + 28);
 		} else {
 			context.fillStyle = '#94a3b8';
 			context.fillText('SELECT CHARACTER', p2StatusX, statusY);
-			context.font = '14px Arial, sans-serif';
+			context.font = '14px Roboto, sans-serif';
 			context.fillText('Click to select character', p2StatusX, statusY + 28);
 		}
 	}
@@ -380,7 +380,7 @@ export default class CharacterSelectState extends State {
 		context.strokeRect(this.backButton.x, this.backButton.y, this.backButton.width, this.backButton.height);
 		
 		context.fillStyle = this.textColor;
-		context.font = 'bold 20px Arial, sans-serif';
+		context.font = 'bold 20px Roboto, sans-serif';
 		context.textAlign = 'center';
 		context.textBaseline = 'middle';
 		context.fillText(
@@ -407,7 +407,7 @@ export default class CharacterSelectState extends State {
 		context.strokeRect(this.startButton.x, this.startButton.y, this.startButton.width, this.startButton.height);
 		
 		context.fillStyle = canStart ? '#ffffff' : '#475569';
-		context.font = 'bold 20px Arial, sans-serif';
+		context.font = 'bold 20px Roboto, sans-serif';
 		context.textAlign = 'center';
 		context.textBaseline = 'middle';
 		context.fillText(

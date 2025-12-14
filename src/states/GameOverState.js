@@ -28,7 +28,7 @@ export default class GameOverState extends State {
 		this.stadium.render();
 
 		context.save();
-		context.font = '200px Arial';
+		context.font = '120px "Press Start 2P", monospace';
 		context.fillStyle = 'black';
 		context.textBaseline = 'middle';
 		context.textAlign = 'center';
@@ -36,7 +36,7 @@ export default class GameOverState extends State {
 		context.fillStyle = 'orange';
 		context.fillText("It's a Tie!", CANVAS_WIDTH / 2 + 5, CANVAS_HEIGHT / 2 - 85);
 		
-		context.font = '50px Arial';
+		context.font = '50px Roboto, sans-serif';
 		context.fillStyle = 'white';
 		context.fillText('Press Enter to Play Again', CANVAS_WIDTH / 2, CANVAS_HEIGHT - 80);
 		context.restore();

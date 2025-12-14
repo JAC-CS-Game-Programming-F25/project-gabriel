@@ -304,7 +304,7 @@ export default class Match {
 			
 			if (this.countdownTime > 0) {
 				// Show countdown number (3, 2, 1)
-				context.font = '300px Arial';
+				context.font = '150px "Press Start 2P", monospace';
 				context.fillStyle = 'white';
 				context.fillText(this.countdownTime, CANVAS_WIDTH / 2, CANVAS_HEIGHT / 2);
 				context.strokeStyle = 'black';
@@ -312,7 +312,7 @@ export default class Match {
 				context.strokeText(this.countdownTime, CANVAS_WIDTH / 2, CANVAS_HEIGHT / 2);
 			} else {
 				// Show GO!
-				context.font = '200px Arial';
+				context.font = '100px "Press Start 2P", monospace';
 				context.fillStyle = 'limegreen';
 				context.fillText('GO!', CANVAS_WIDTH / 2, CANVAS_HEIGHT / 2);
 				context.strokeStyle = 'darkgreen';
@@ -327,7 +327,7 @@ export default class Match {
 		// Render scores
 		context.save();
 		context.fillStyle = 'white';
-		context.font = '60px Arial';
+		context.font = '60px Roboto, sans-serif';
 		context.textAlign = 'left';
 		context.fillText(`P1: ${this.player1.score}`, 50, 80);
 		
@@ -335,6 +335,7 @@ export default class Match {
 		context.fillText(`P2: ${this.player2.score}`, CANVAS_WIDTH - 50, 80);
 		
 		// Render timer
+		context.font = '70px "Bebas Neue", sans-serif';
 		context.textAlign = 'center';
 		const minutes = Math.floor(this.timeRemaining / 60);
 		const seconds = this.timeRemaining % 60;
@@ -345,7 +346,7 @@ export default class Match {
 		
 		// Show active powerup effects for both players
 		context.save();
-		context.font = '28px Arial';
+		context.font = '28px Roboto, sans-serif';
 		context.fillStyle = 'white';
 		context.strokeStyle = 'black';
 		context.lineWidth = 3;
@@ -408,7 +409,7 @@ export default class Match {
 			context.textBaseline = 'middle';
 			
 			// GOAL! text
-			context.font = `${200 * scale}px Arial`;
+			context.font = `${100 * scale}px "Press Start 2P", monospace`;
 			context.fillStyle = 'gold';
 			context.fillText('GOAL!', CANVAS_WIDTH / 2, CANVAS_HEIGHT / 2 - 50);
 			context.strokeStyle = 'darkorange';
@@ -416,7 +417,7 @@ export default class Match {
 			context.strokeText('GOAL!', CANVAS_WIDTH / 2, CANVAS_HEIGHT / 2 - 50);
 			
 			// Player X scored text
-			context.font = '80px Arial';
+			context.font = '80px Roboto, sans-serif';
 			context.fillStyle = 'white';
 			context.fillText(`Player ${this.lastScorer} scored!`, CANVAS_WIDTH / 2, CANVAS_HEIGHT / 2 + 100);
 			context.strokeStyle = 'black';

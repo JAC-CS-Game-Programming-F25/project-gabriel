@@ -15,7 +15,7 @@ export default class Match {
 	 * Represents a single Head Soccer match between two players.
 	 * Includes the field, players, ball, goals, timer, and scoring.
 	 */
-	constructor() {
+	constructor(player1Character = "CODY", player2Character = "ALE") {
 		this.stadium = new Stadium();
 		this.ground = new Ground();
 		
@@ -51,8 +51,8 @@ export default class Match {
 		this.goal2 = new Goal(CANVAS_WIDTH - Goal.WIDTH, CANVAS_HEIGHT - Ground.GRASS.height - Goal.HEIGHT, 2);
 		
 		// Create 2 players on opposite sides
-		this.player1 = new Player(300, CANVAS_HEIGHT - Ground.GRASS.height - 100, 1);
-		this.player2 = new Player(CANVAS_WIDTH - 300, CANVAS_HEIGHT - Ground.GRASS.height - 100, 2);
+		this.player1 = new Player(300, CANVAS_HEIGHT - Ground.GRASS.height - 100, 1, player1Character);
+		this.player2 = new Player(CANVAS_WIDTH - 300, CANVAS_HEIGHT - Ground.GRASS.height - 100, 2, player2Character);
 		
 		// Create ball at center
 		this.ball = new Ball(CANVAS_WIDTH / 2, CANVAS_HEIGHT - Ground.GRASS.height - 200);

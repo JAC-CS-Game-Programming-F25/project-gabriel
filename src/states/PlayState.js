@@ -13,7 +13,12 @@ export default class PlayState extends State {
 
 	enter(parameters = {}) {
 		sounds.play(SoundName.Music);
-		this.match = new Match();
+		
+		// Pass character selections to Match
+		const player1Character = parameters.player1Character || 'CODY';
+		const player2Character = parameters.player2Character || 'ALE';
+		
+		this.match = new Match(player1Character, player2Character);
 	}
 
 	exit() {

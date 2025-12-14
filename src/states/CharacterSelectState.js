@@ -10,10 +10,10 @@ export default class CharacterSelectState extends State {
 		
 		// Character data - names match FaceSprite normal states
 		this.characters = [
-			{ name: 'ALE', sprite: FaceSprite.AleNormal, displayName: 'ALE' },
-			{ name: 'CODY', sprite: FaceSprite.CodyNormal, displayName: 'CODY' },
-			{ name: 'NIK', sprite: FaceSprite.NikNormal, displayName: 'NIK' },
-			{ name: 'SEF', sprite: FaceSprite.SefNormal, displayName: 'SEF' },
+			{ name: 'Ale', sprite: FaceSprite.AleNormal, displayName: 'ALE' },
+			{ name: 'Cody', sprite: FaceSprite.CodyNormal, displayName: 'CODY' },
+			{ name: 'Nik', sprite: FaceSprite.NikNormal, displayName: 'NIK' },
+			{ name: 'Sef', sprite: FaceSprite.SefNormal, displayName: 'SEF' },
 		];
 		
 		// Selection state

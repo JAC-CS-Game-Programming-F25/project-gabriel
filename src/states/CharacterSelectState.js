@@ -133,11 +133,9 @@ export default class CharacterSelectState extends State {
 			}
 		}
 		
-		// Check Back button
+		// Check Back button - goes back to title screen
 		if (this.backButton && this.isPointInButton(mouseX, mouseY, this.backButton)) {
-			// Reset selections
-			this.player1Selected = null;
-			this.player2Selected = null;
+			stateMachine.change(GameStateName.Title);
 			return;
 		}
 		
@@ -373,7 +371,7 @@ export default class CharacterSelectState extends State {
 	}
 
 	drawButtons(mouseX, mouseY) {
-		// Back button
+		// Back button - goes back to title screen
 		const backHovered = this.isPointInButton(mouseX, mouseY, this.backButton);
 		context.fillStyle = backHovered ? this.buttonHoverColor : this.buttonBgColor;
 		context.fillRect(this.backButton.x, this.backButton.y, this.backButton.width, this.backButton.height);

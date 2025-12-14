@@ -1,6 +1,5 @@
 /**
  * Head Soccer
- *
  * A soccer game where two players compete head-to-head using oversized heads
  * to hit a soccer ball into their opponent's goal.
  */
@@ -18,10 +17,11 @@ import {
 	sounds,
 	stateMachine,
 } from './globals.js';
+import TitleScreenState from './states/TitleScreenState.js';
+import CharacterSelectState from './states/CharacterSelectState.js';
 import PlayState from './states/PlayState.js';
 import GameOverState from './states/GameOverState.js';
 import VictoryState from './states/VictoryState.js';
-import CharacterSelectState from './states/CharacterSelectState.js';
 
 // Set the dimensions of the play area.
 canvas.width = CANVAS_WIDTH;
@@ -44,13 +44,14 @@ fonts.load(fontDefinitions);
 sounds.load(soundDefinitions);
 
 // Add all the states to the state machine.
+stateMachine.add(GameStateName.Title, new TitleScreenState());
 stateMachine.add(GameStateName.CharacterSelect, new CharacterSelectState());
 stateMachine.add(GameStateName.GameOver, new GameOverState());
 stateMachine.add(GameStateName.Victory, new VictoryState());
 stateMachine.add(GameStateName.Play, new PlayState());
 
-// Start with character selection
-stateMachine.change(GameStateName.CharacterSelect);
+// Start with title screen
+stateMachine.change(GameStateName.Title);
 
 const game = new Game(stateMachine, context, canvas.width, canvas.height);
 

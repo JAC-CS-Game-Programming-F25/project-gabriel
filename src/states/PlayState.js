@@ -12,7 +12,7 @@ export default class PlayState extends State {
 	}
 
 	enter(parameters = {}) {
-		sounds.play(SoundName.Music);
+		sounds.play(SoundName.BackgroundMusic);
 		
 		// Pass character selections to Match
 		const player1Character = parameters.player1Character || 'CODY';

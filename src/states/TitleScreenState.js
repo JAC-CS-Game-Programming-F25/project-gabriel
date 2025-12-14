@@ -1,7 +1,8 @@
 import State from '../../lib/State.js';
 import GameStateName from '../enums/GameStateName.js';
 import ImageName from '../enums/ImageName.js';
-import { CANVAS_HEIGHT, CANVAS_WIDTH, context, images, input, stateMachine } from '../globals.js';
+import SoundName from '../enums/SoundName.js';
+import { CANVAS_HEIGHT, CANVAS_WIDTH, context, images, input, stateMachine, sounds } from '../globals.js';
 
 export default class TitleScreenState extends State {
 	constructor() {
@@ -99,12 +100,14 @@ export default class TitleScreenState extends State {
 	handleClick(mouseX, mouseY) {
 		// Check Start Game button
 		if (this.isPointInButton(mouseX, mouseY, this.startButton)) {
+			sounds.play(SoundName.Click);
 			stateMachine.change(GameStateName.CharacterSelect);
 			return;
 		}
 		
 		// Check Settings button
 		if (this.isPointInButton(mouseX, mouseY, this.settingsButton)) {
+			sounds.play(SoundName.Click);
 			// TODO: Implement settings screen at some point
 			console.log('Settings clicked');
 			return;

@@ -5,8 +5,9 @@ import Ball from "../entities/Ball.js";
 import Goal from "../entities/Goal.js";
 import Wall from "../entities/Wall.js";
 import PowerUpFactory from "./PowerUpFactory.js";
-import { context, CANVAS_WIDTH, CANVAS_HEIGHT, matter, engine } from "../globals.js";
+import { context, CANVAS_WIDTH, CANVAS_HEIGHT, matter, engine, sounds } from "../globals.js";
 import BodyType from "../enums/BodyType.js";
+import SoundName from "../enums/SoundName.js";
 
 const { Events } = matter;
 
@@ -91,6 +92,11 @@ export default class Match {
 			event.pairs.forEach((pair) => {
 				const { bodyA, bodyB } = pair;
 				
+				// Play bounce sound for any collision involving the ball
+				if (bodyA.label === BodyType.Ball || bodyB.label === BodyType.Ball) {
+					sounds.play(SoundName.BallBounce);
+				}
+				
 				// Check if ball entered a goal
 				if (this.isBallGoalCollision(bodyA, bodyB)) {
 					this.handleGoal(bodyA, bodyB);
@@ -150,6 +156,9 @@ export default class Match {
 			console.log("Player 1 scored!");
 		}
 		
+		// Play crowd cheering sound
+		sounds.play(SoundName.CrowdCheering);
+		
 		// Trigger goal celebration animation
 		this.showingGoal = true;
 		this.goalTimer = 0;
@@ -198,6 +207,9 @@ export default class Match {
 		const powerup = powerupBody.entity;
 		
 		if (player && powerup && !powerup.collected) {
+			// Play powerup collect sound
+			sounds.play(SoundName.PowerUpCollect);
+			
 			powerup.collect(player);
 			// Remove from active powerups array
 			const index = this.powerups.indexOf(powerup);
@@ -216,6 +228,9 @@ export default class Match {
 		
 		const powerup = PowerUpFactory.createRandom(x, y);
 		this.powerups.push(powerup);
+		
+		// Play powerup appear sound
+		sounds.play(SoundName.PowerUpAppear);
 		
 		console.log(`PowerUp spawned: ${powerup.type}`);
 	}
@@ -326,7 +341,7 @@ export default class Match {
 		
 		// Render scores
 		context.save();
-		context.fillStyle = 'white';
+		context.fillStyle = 'black';
 		context.font = '60px Roboto, sans-serif';
 		context.textAlign = 'left';
 		context.fillText(`P1: ${this.player1.score}`, 50, 80);

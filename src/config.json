@@ -98,53 +98,53 @@
 	],
 	"sounds": [
 		{
-			"name": "music",
-			"path": "./assets/sounds/music.wav",
+			"name": "background-music",
+			"path": "./assets/sounds/background-music.mp3",
 			"size": 1,
-			"volume": 0.1,
+			"volume": 0.08,
 			"loop": true
 		},
 		{
-			"name": "bounce",
-			"path": "./assets/sounds/bounce.wav",
+			"name": "ball-bounce",
+			"path": "./assets/sounds/ball-bounce.mp3",
 			"size": 5,
-			"volume": 0.1
+			"volume": 0.2
 		},
 		{
-			"name": "break1",
-			"path": "./assets/sounds/break1.wav",
-			"size": 5,
-			"volume": 0.1
+			"name": "crowd-cheering",
+			"path": "./assets/sounds/crowd-cheering.mp3",
+			"size": 1,
+			"volume": 0.3
 		},
 		{
-			"name": "break2",
-			"path": "./assets/sounds/break2.wav",
-			"size": 5,
-			"volume": 0.1
+			"name": "hop",
+			"path": "./assets/sounds/hop.mp3",
+			"size": 3,
+			"volume": 0.15
 		},
 		{
-			"name": "break3",
-			"path": "./assets/sounds/break3.mp3",
-			"size": 5,
-			"volume": 0.1
+			"name": "powerup-appear",
+			"path": "./assets/sounds/powerup-appear.wav",
+			"size": 3,
+			"volume": 0.2
 		},
 		{
-			"name": "break4",
-			"path": "./assets/sounds/break4.wav",
-			"size": 5,
-			"volume": 0.1
+			"name": "powerup-collect",
+			"path": "./assets/sounds/powerup-collect.wav",
+			"size": 3,
+			"volume": 0.25
 		},
 		{
-			"name": "break5",
-			"path": "./assets/sounds/break5.wav",
-			"size": 5,
-			"volume": 0.1
+			"name": "end-of-game",
+			"path": "./assets/sounds/end-of-game.wav",
+			"size": 1,
+			"volume": 0.3
 		},
 		{
-			"name": "kill",
-			"path": "./assets/sounds/kill.wav",
-			"size": 5,
-			"volume": 0.1
+			"name": "click",
+			"path": "./assets/sounds/click.wav",
+			"size": 3,
+			"volume": 0.2
 		}
 	]
 }

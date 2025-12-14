@@ -10,9 +10,9 @@ import FaceSprite from '../enums/FaceSprite.js';
 const { Bodies, Body, Composite, Constraint } = matter;
 
 export default class Player {
-	static HEAD_RADIUS = 25;
-	static BOOT_WIDTH = 60;  // Long boot
-	static BOOT_HEIGHT = 20; // Tall boot
+	static HEAD_RADIUS = 30;
+	static BOOT_WIDTH = 60;
+	static BOOT_HEIGHT = 20;
 
 	// All 12 face sprites from your sprite sheet (4 characters × 3 expressions)
 	static FACE_SPRITE_MEASUREMENTS = [
@@ -76,6 +76,7 @@ export default class Player {
 		// P1 faces right -> head on left side of boot
 		// P2 faces left -> head on right side of boot
 		const heelOffsetX = this.facingRight ? -Player.BOOT_WIDTH / 2 + 10 : Player.BOOT_WIDTH / 2 - 10;
+		
 		this.head = Bodies.circle(
 			x + heelOffsetX,
 			y - Player.BOOT_HEIGHT / 2 - Player.HEAD_RADIUS,
@@ -117,6 +118,15 @@ export default class Player {
 		// Generate face sprites
 		this.faceSprites = Player.generateFaceSprites();
 		
+		// Load shoe sprite
+		this.shoeSprite = new Sprite(
+			images.get(ImageName.Shoe),
+			0,
+			0,
+			34,
+			34
+		);
+		
 		// Set current sprite based on character
 		this.normalFaceIndex = this.getNormalFaceIndex();
 		this.happyFaceIndex = this.getHappyFaceIndex();
@@ -143,7 +153,7 @@ export default class Player {
 
 		this.isKicking = false;
 		this.kickTimer = 0;
-		this.kickDuration = 0.15;
+		this.kickDuration = 0.25;
 		
 		// PowerUp effects
 		this.hasSpeedBoost = false;
@@ -262,7 +272,6 @@ export default class Player {
 			if (bootVelocity.x > -maxSpeed) {
 				Body.applyForce(this.boot, this.boot.position, { x: -speed, y: 0 });
 			}
-			this.facingRight = false;
 		}
 		
 		// Right movement
@@ -270,7 +279,6 @@ export default class Player {
 			if (bootVelocity.x < maxSpeed) {
 				Body.applyForce(this.boot, this.boot.position, { x: speed, y: 0 });
 			}
-			this.facingRight = true;
 		}
 		
 		// Jump
@@ -393,91 +401,123 @@ export default class Player {
 		Body.setAngle(this.head, 0);
 		Body.setAngularVelocity(this.head, 0);
 		
+		// Stabilize on ground
 		if (this.isOnGround()) {
+			// Snap to ground level and kill downward velocity
+			const groundY = CANVAS_HEIGHT - Ground.GRASS.height - Player.BOOT_HEIGHT / 2;
+			Body.setPosition(this.boot, {
+				x: this.boot.position.x,
+				y: groundY
+			});
+			
 			Body.setVelocity(this.boot, {
 				x: this.boot.velocity.x,
-				y: Math.max(0, this.boot.velocity.y * 0.5) // Kill downward velocity
+				y: 0
 			});
 			Body.setVelocity(this.head, {
 				x: this.head.velocity.x,
-				y: Math.max(0, this.head.velocity.y * 0.5)
+				y: 0
 			});
 		}
 	}
 
 	isOnGround() {
-		return this.boot.position.y >= CANVAS_HEIGHT - Ground.GRASS.height - Player.BOOT_HEIGHT / 2 - 1;
+		const groundY = CANVAS_HEIGHT - Ground.GRASS.height - Player.BOOT_HEIGHT / 2;
+		return this.boot.position.y >= groundY - 2;
 	}
 
 	addScore() {
 		this.score++;
 	}
 
+	/**
+	 * Calculate kick animation offset using an arc motion.
+	 * @returns {{x: number, y: number, rotation: number}} offset and rotation for kick
+	 */
+	getKickOffset() {
+		if (!this.isKicking) {
+			return { x: 0, y: 0, rotation: 0 };
+		}
+		
+		// Progress from 0 to 1 through the kick animation
+		const progress = this.kickTimer / this.kickDuration;
+		
+		// Use sine wave for smoothness
+		// 0 -> 1 -> 0 (goes up then back down)
+		const arc = Math.sin(progress * Math.PI);
+		
+		// Kick moves backwards and up in an arc (like winding up)
+		const maxBackwardDistance = 25; // How far backward the kick goes
+		const maxUpwardDistance = 30;   // How high the kick goes
+		const maxRotation = -45;        // Negative rotation (bends backward)
+		
+		// Backward motion follows the arc (neg for backward)
+		const backwardOffset = -arc * maxBackwardDistance;
+		
+		// Upward motion peaks in the middle of the kick
+		const upwardOffset = -arc * maxUpwardDistance;
+		
+		// Rotation, shoe rotates backward during kick 
+		const rotation = arc * maxRotation * (Math.PI / 180); // Convert to radians
+		
+		return {
+			x: backwardOffset,
+			y: upwardOffset,
+			rotation: rotation
+		};
+	}
+
 	render() {
-		// Render head WITH SPRITE!
+		const renderYOffset = -10; // Shift both head and shoe up by 15 pixels
+		const kickOffset = this.getKickOffset();
+		
+		// Render boot first (behind head)
 		context.save();
-		context.translate(this.head.position.x, this.head.position.y);
+		context.translate(this.boot.position.x, this.boot.position.y + renderYOffset);
+		
+		const shoeScale = 2.0;
+		const shoeSize = 34;
+		
+		// Apply kick offset
+		const xOffset = this.facingRight ? kickOffset.x : -kickOffset.x;
+		context.translate(xOffset, kickOffset.y);
+		
+		// Apply rotation around the heel (pivot point)
+		const rotationAngle = this.facingRight ? kickOffset.rotation : -kickOffset.rotation;
+		context.rotate(rotationAngle);
+		
+		if (!this.facingRight) {
+			context.scale(-shoeScale, shoeScale);
+		} else {
+			context.scale(shoeScale, shoeScale);
+		}
+		
+		const shoeOffset = -shoeSize / 2;
+		this.shoeSprite.render(shoeOffset, shoeOffset);
+		
+		context.restore();
+
+		// Render head second (in front of shoe)
+		context.save();
+		context.translate(this.head.position.x, this.head.position.y + renderYOffset);
 		context.rotate(this.head.angle);
 
 		const headScale = this.hasBigHead ? 2.0 : 1.0;
 		const scaledRadius = Player.HEAD_RADIUS * headScale;
 		
-		// Calculate scale factor (scaledRadius * 4 is optimal size)
-		const spriteSize = Player.FACE_SPRITE_MEASUREMENTS[0].width; // 200
-		const targetSize = scaledRadius * 4;
+		const spriteSize = Player.FACE_SPRITE_MEASUREMENTS[0].width;
+		const targetSize = scaledRadius * 4.2;
 		const scale = targetSize / spriteSize;
 		
-		// Flip sprite if facing left
 		if (!this.facingRight) {
 			context.scale(-scale, scale);
 		} else {
 			context.scale(scale, scale);
 		}
 		
-		// Render sprite at center (it will be scaled by the context)
 		const spriteOffset = -spriteSize / 2;
 		this.faceSprites[this.currentFaceSprite].render(spriteOffset, spriteOffset);
 
-		context.restore();
-
-		// Render boot 
-		context.save();
-		context.translate(this.boot.position.x, this.boot.position.y);
-		
-		// Kick animation extends boot forward
-		const kickOffset = this.isKicking ? 12 : 0;
-		
-		// Draw boot extending FORWARD from heel position
-		const bootStartX = this.facingRight ? -Player.BOOT_WIDTH / 2 : -Player.BOOT_WIDTH / 2;
-		
-		context.fillStyle = this.playerNumber === 1 ? '#8B4513' : '#2C3E50';
-		context.fillRect(
-			bootStartX + (this.facingRight ? kickOffset : -kickOffset),
-			-Player.BOOT_HEIGHT / 2,
-			Player.BOOT_WIDTH,
-			Player.BOOT_HEIGHT
-		);
-		context.strokeStyle = 'black';
-		context.lineWidth = 2;
-		context.strokeRect(
-			bootStartX + (this.facingRight ? kickOffset : -kickOffset),
-			-Player.BOOT_HEIGHT / 2,
-			Player.BOOT_WIDTH,
-			Player.BOOT_HEIGHT
-		);
-		
-		// Draw toe cap at the FRONT of boot
-		context.fillStyle = 'rgba(0, 0, 0, 0.3)';
-		const toeX = this.facingRight ? 
-			Player.BOOT_WIDTH / 2 - 12 : 
-			-Player.BOOT_WIDTH / 2;
-		context.fillRect(
-			toeX + (this.facingRight ? kickOffset : -kickOffset),
-			-Player.BOOT_HEIGHT / 2,
-			12,
-			Player.BOOT_HEIGHT
-		);
-		
 		context.restore();
 	}
 }

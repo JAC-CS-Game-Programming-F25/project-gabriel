@@ -3,8 +3,8 @@
 		{
 			"name": "background",
 			"path": "./assets/images/background.png",
-			"width": 2304,
-			"height": 1296
+			"width": 2000,
+			"height": 1125
 		},
 		{
 			"name": "background2",
@@ -57,6 +57,12 @@
 			"path": "./assets/images/soccer-ball.png",
 			"width": 1024,
 			"height": 136
+		},
+		{
+			"name": "shoe",
+			"path": "./assets/images/shoe.png",
+			"width": 34,
+			"height": 34
 		}
 	],
 	"fonts": [

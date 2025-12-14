@@ -48,7 +48,7 @@ export default class Player {
 	 * @param {number} playerNumber 1 or 2
 	 * @param {string} character 'Ale', 'Cody', 'Nik', or 'Sef'
 	 */
-	constructor(x, y, playerNumber = 1, character = 'Cody') {
+	constructor(x, y, playerNumber = 1, character = 'Nik') {
 		this.playerNumber = playerNumber;
 		this.character = character;
 		this.score = 0;

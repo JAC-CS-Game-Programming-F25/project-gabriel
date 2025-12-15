@@ -4,6 +4,47 @@
  * to hit a soccer ball into their opponent's goal.
  */
 
+/*
+====================
+ASSET CREDITS / SOURCES
+====================
+
+Background Sprite:
+- Free Nature Pixel Backgrounds for Games
+  https://free-game-assets.itch.io/free-nature-pixel-backgrounds-for-games
+
+Audio:
+- Arcade Background Music:
+  https://freesound.org/people/joshuaempyre/sounds/251461/
+- Jump Sound Effect:
+  https://freesound.org/people/jburunet/sounds/509410/
+- Power-Up Collect Sound:
+  https://freesound.org/people/NearTheAtmoshphere/sounds/683181/
+- Power-Up Spawn Sound:
+  https://freesound.org/people/Nakhas/sounds/506939/
+- Menu Click Sound:
+  https://freesound.org/people/mikemunkie/sounds/66878/
+- Goal Scored / Crowd Cheer:
+  https://freesound.org/people/paulw2k/sounds/196461/
+- Ball Bounce Sound:
+  https://freesound.org/people/freesoundMozardes/sounds/514640/
+- Game Over Jingle:
+  https://freesound.org/people/Rolly-SFX/sounds/626259/
+
+Sprites:
+- Air Jordans Shoe Sprite:
+  https://freddiepng.itch.io/3-air-jordans-free
+- Power-Up Icons:
+  https://youngyokai.itch.io/simple-rpg-skill-icons-free
+- Soccer Ball Sprite Sheet:
+  https://opengameart.org/content/soccer-ball-animation-sprites-and-3d-texture
+
+Original Assets (Created by Me):
+- Head Sprite Sheet
+- Goal Sprite
+*/
+
+
 import GameStateName from './enums/GameStateName.js';
 import Game from '../lib/Game.js';
 import {

@@ -167,12 +167,14 @@ export default class PauseState extends State {
 		context.font = '80px "Press Start 2P", monospace';
 		context.fillStyle = '#e94560';
 		context.textAlign = 'center';
+		context.textBaseline = 'top';
 		context.fillText('PAUSED', CANVAS_WIDTH / 2, panelY + 100);
 
 		// Subtitle
 		context.font = '28px Roboto, sans-serif';
 		context.fillStyle = '#ffffff';
-		context.fillText('Game is paused', CANVAS_WIDTH / 2, panelY + 145);
+		context.textAlign = 'center';
+		context.textBaseline = 'top';
 
 		// Draw buttons
 		for (let i = 0; i < this.buttons.length; i++) {
@@ -193,10 +195,11 @@ export default class PauseState extends State {
 			context.font = '32px Roboto, sans-serif';
 			context.fillStyle = isHovered ? '#ffffff' : '#ffffff';
 			context.textAlign = 'center';
+			context.textBaseline = 'middle';
 			context.fillText(
 				`${icons[i]} ${this.options[i]}`,
 				button.x + button.width / 2,
-				button.y + button.height / 2 + 10
+				button.y + button.height / 2
 			);
 		}
 

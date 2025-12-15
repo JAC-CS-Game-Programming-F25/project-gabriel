@@ -7,32 +7,10 @@
 			"height": 1125
 		},
 		{
-			"name": "background2",
-			"path": "./assets/images/background2.png",
-			"width": 512,
-			"height": 512
-		},
-		{
-			"name": "glass",
-			"path": "./assets/images/glass.png"
-		},
-		{
 			"name": "grass",
 			"path": "./assets/images/grass.png",
 			"width": 70,
 			"height": 70
-		},
-		{
-			"name": "sprites",
-			"path": "./assets/images/sprites.png",
-			"width": 1449,
-			"height": 968
-		},
-		{
-			"name": "wood",
-			"path": "./assets/images/wood.png",
-			"width": 512,
-			"height": 512
 		},
 		{
 			"name": "faces",
@@ -72,14 +50,6 @@
 		}
 	],
 	"fonts": [
-		{
-			"name": "Joystix",
-			"path": "./assets/fonts/Joystix.ttf"
-		},
-		{
-			"name": "AngryBirds",
-			"path": "./assets/fonts/AngryBirds.ttf"
-		},
 		{
 			"name": "Press Start 2P",
 			"path": "https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap",

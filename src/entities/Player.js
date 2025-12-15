@@ -65,6 +65,9 @@ export default class Player {
 		this.camera = null; // Reference to camera for screen shake
 		this.input = input; // Store reference to input for states to access
 		this.input = input; // Store reference to input
+		// Store spawn position for reset
+		this.spawnX = x;
+		this.spawnY = y;
 
 		// Create the boot FIRST (it's the main body on the ground)
 		this.boot = Bodies.rectangle(
@@ -617,4 +620,33 @@ export default class Player {
 		
 		console.log(`Player ${this.playerNumber} cleanup complete`);
 	}
+
+	/**
+	 * Reset player to spawn position with zero velocity
+	 */
+	reset() {
+		// Calculate head offset based on facing direction
+		const heelOffsetX = this.facingRight ? -Player.BOOT_WIDTH / 2 + 10 : Player.BOOT_WIDTH / 2 - 10;
+		
+		// Reset boot position
+		Body.setPosition(this.boot, { x: this.spawnX, y: this.spawnY });
+		
+		// Reset head position
+		Body.setPosition(this.head, {
+			x: this.spawnX + heelOffsetX,
+			y: this.spawnY - Player.BOOT_HEIGHT / 2 - Player.HEAD_RADIUS
+		});
+		
+		// Zero out all velocities
+		Body.setVelocity(this.boot, { x: 0, y: 0 });
+		Body.setVelocity(this.head, { x: 0, y: 0 });
+		Body.setAngularVelocity(this.boot, 0);
+		Body.setAngularVelocity(this.head, 0);
+		
+		// Reset to idle state
+		if (this.stateMachine) {
+			this.stateMachine.change('idle');
+		}
+	}
+
 }

@@ -242,6 +242,10 @@ export default class Match {
 		
 		// Reset ball to center
 		this.ball.reset(CANVAS_WIDTH / 2, CANVAS_HEIGHT - Ground.GRASS.height - 200);
+		
+		// Reset players to their spawn positions
+		this.player1.reset();
+		this.player2.reset();
 	}
 
 	handleKick(bodyA, bodyB) {

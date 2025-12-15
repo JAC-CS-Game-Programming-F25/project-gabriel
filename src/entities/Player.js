@@ -117,6 +117,9 @@ export default class Player {
 		});
 
 		Composite.add(this.body, constraint);
+		
+		// Store constraint reference for big head power-up adjustments
+		this.headConstraint = constraint;
 
 		// Add to world
 		Composite.add(world, this.body);
@@ -172,6 +175,10 @@ export default class Player {
 		this.bigHeadTimer = 0;
 		this.hasSuperKick = false;
 		this.superKickTimer = 0;
+		
+		// Store original head properties for big head power-up
+		this.originalHeadRadius = Player.HEAD_RADIUS;
+		this.headConstraint = null; // Will be set after constraint creation
 
 		// Initialize state machine, states handle movement, jumping, and kicking
 		this.stateMachine = new StateMachine();
@@ -316,12 +323,12 @@ export default class Player {
 			if (this.hasSuperKick) {
 				baseKickPower *= 3.0; 
 				this.hasSuperKick = false; // Consumed after one use
-			
+				
 			// Big screen shake for super kick
-			if (this.camera) {
-				this.camera.shake(10, 0.3);
-			}
-			
+				if (this.camera) {
+					this.camera.shake(10, 0.3);
+				}
+				
 				console.log(`Player ${this.playerNumber} used SUPER KICK!`);
 			} else {
 				// Small screen shake for normal kick
@@ -366,6 +373,7 @@ export default class Player {
 		if (this.hasBigHead) {
 			this.bigHeadTimer -= dt;
 			if (this.bigHeadTimer <= 0) {
+				this.removeBigHead();
 				this.hasBigHead = false;
 				this.bigHeadTimer = 0;
 				console.log(`Player ${this.playerNumber} big head expired`);
@@ -379,6 +387,67 @@ export default class Player {
 				this.hasSuperKick = false;
 				this.superKickTimer = 0;
 			}
+		}
+	}
+
+
+	findHeadConstraint() {
+		// If we don't have a constraint reference, find it in the composite
+		if (!this.headConstraint && this.body && this.body.constraints) {
+			// Find the constraint that connects head and boot
+			this.headConstraint = this.body.constraints.find(c => 
+				(c.bodyA === this.head && c.bodyB === this.boot) ||
+				(c.bodyA === this.boot && c.bodyB === this.head)
+			);
+		}
+	}
+
+	applyBigHead() {
+		// Make sure we have the constraint reference
+		this.findHeadConstraint();
+		
+		// Scale head to 2x using Matter.js Body.scale
+		const scaleAmount = 2.0;
+		Body.scale(this.head, scaleAmount, scaleAmount);
+		
+		// Reset mass to original (Body.scale increases mass by scale^2)
+		const originalMass = this.originalHeadRadius * this.originalHeadRadius * Math.PI * 0.005;
+		Body.setMass(this.head, originalMass);
+		
+		// Move head up by the radius difference to keep bottom at same height
+		const radiusDiff = this.originalHeadRadius * (scaleAmount - 1);
+		Body.setPosition(this.head, {
+			x: this.head.position.x,
+			y: this.head.position.y - radiusDiff
+		});
+		
+		// Update constraint pointA for the biger head
+		if (this.headConstraint) {
+			this.headConstraint.pointA = { x: 0, y: this.originalHeadRadius * scaleAmount };
+		}
+	}
+
+	removeBigHead() {
+		// Scale head back to 0.5x (since it's currently 2x, this brings it to 1x)
+		const scaleAmount = 0.5;
+		Body.scale(this.head, scaleAmount, scaleAmount);
+		
+		// Reset mass to original (Body.scale increases mass by scale^2)
+		const originalMass = this.originalHeadRadius * this.originalHeadRadius * Math.PI * 0.005;
+		Body.setMass(this.head, originalMass);
+		
+		// Move head down by the radius difference to keep bottom at same height
+		const radiusDiff = this.originalHeadRadius;
+		Body.setPosition(this.head, {
+			x: this.head.position.x,
+			y: this.head.position.y + radiusDiff
+		});
+		
+		
+		// Update constraint pointA back to normal
+		if (this.headConstraint) {
+			const newPointA = { x: 0, y: this.originalHeadRadius };
+			this.headConstraint.pointA = newPointA;
 		}
 	}
 
@@ -492,8 +561,9 @@ export default class Player {
 		context.translate(this.head.position.x, this.head.position.y + renderYOffset);
 		context.rotate(this.head.angle);
 
-		const headScale = this.hasBigHead ? 2.0 : 1.0;
-		const scaledRadius = Player.HEAD_RADIUS * headScale;
+		// Use actual head body radius for rendering
+		const actualHeadRadius = this.head.circleRadius;
+		const scaledRadius = actualHeadRadius;
 		
 		const spriteSize = Player.FACE_SPRITE_MEASUREMENTS[0].width;
 		const targetSize = scaledRadius * 4.2;

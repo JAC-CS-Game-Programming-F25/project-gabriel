@@ -5,6 +5,8 @@ import Ball from "../entities/Ball.js";
 import Goal from "../entities/Goal.js";
 import Wall from "../entities/Wall.js";
 import PowerUpFactory from "./PowerUpFactory.js";
+import Camera from "../../lib/Camera.js";
+import ParticleSystem from "../../lib/ParticleSystem.js";
 import { context, CANVAS_WIDTH, CANVAS_HEIGHT, matter, engine, sounds, world } from "../globals.js";
 import BodyType from "../enums/BodyType.js";
 import SoundName from "../enums/SoundName.js";
@@ -19,6 +21,12 @@ export default class Match {
 	constructor(player1Character = "Cody", player2Character = "Ale") {
 		this.stadium = new Stadium();
 		this.ground = new Ground();
+		
+		// Camera for screen shake
+		this.camera = new Camera();
+		
+		// Particle system for effects
+		this.particles = new ParticleSystem();
 		
 		// Create invisible walls to keep ball/players on screen
 		const wallThickness = 200;
@@ -58,9 +66,11 @@ export default class Match {
 		// Create ball at center
 		this.ball = new Ball(CANVAS_WIDTH / 2, CANVAS_HEIGHT - Ground.GRASS.height - 200);
 		
-		// Give players reference to ball for kicking
+		// Give players reference to ball and camera for kicking
 		this.player1.ball = this.ball;
 		this.player2.ball = this.ball;
+		this.player1.camera = this.camera;
+		this.player2.camera = this.camera;
 		
 		// Match timer (90 seconds)
 		this.timeRemaining = 90;
@@ -220,6 +230,12 @@ export default class Match {
 		// Play crowd cheering sound
 		sounds.play(SoundName.CrowdCheering);
 		
+		// Screen shake for goal!
+		this.camera.shake(15, 0.5);
+		
+		// Confetti explosion at goal location
+		this.particles.confetti(ballBody.position.x, ballBody.position.y, 30);
+		
 		// Trigger goal celebration animation
 		this.showingGoal = true;
 		this.goalTimer = 0;
@@ -248,6 +264,10 @@ export default class Match {
 				x: headDirection * 0.1,
 				y: -0.06,
 			});
+			
+			// Small screen shake for header
+			this.camera.shake(3, 0.15);
+			
 			console.log(`Player ${player.playerNumber} headed the ball!`);
 		}
 		// Boot collisions are just natural physics bumps 
@@ -268,6 +288,10 @@ export default class Match {
 		if (player && powerup && !powerup.collected) {
 			// Play powerup collect sound
 			sounds.play(SoundName.PowerUpCollect);
+			
+			// Particle burst at powerup collection
+			const colors = ['#ffff00', '#ffd700', '#ffa500', '#ff8c00'];
+			this.particles.burst(powerupBody.position.x, powerupBody.position.y, 20, colors, 250);
 			
 			powerup.collect(player);
 			// Remove from active powerups array
@@ -295,6 +319,12 @@ export default class Match {
 	}
 
 	update(dt) {
+		// Update camera
+		this.camera.update(dt);
+		
+		// Update particles
+		this.particles.update(dt);
+		
 		// Handle countdown before match starts
 		if (!this.matchStarted) {
 			this.countdownTimer += dt;
@@ -353,6 +383,10 @@ export default class Match {
 	}
 
 	render() {
+		// Apply camera shake
+		context.save();
+		this.camera.apply(context);
+		
 		this.stadium.render();
 		this.goal1.render();
 		this.goal2.render();
@@ -361,6 +395,15 @@ export default class Match {
 		this.ball.render();
 		this.powerups.forEach(powerup => powerup.render());
 		this.ground.render();
+		
+		// Render particles (on top of everything)
+		this.particles.render(context);
+		
+		// Reset camera
+		this.camera.reset(context);
+		context.restore();
+		
+		// Render UI (not affected by camera shake)
 		this.renderUI();
 	}
 

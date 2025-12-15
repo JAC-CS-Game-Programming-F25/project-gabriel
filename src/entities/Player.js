@@ -62,6 +62,7 @@ export default class Player {
 		this.facingRight = playerNumber === 1; // P1 faces right, P2 faces left
 		this.shouldCleanUp = false;
 		this.ball = null;
+		this.camera = null; // Reference to camera for screen shake
 		this.input = input; // Store reference to input for states to access
 		this.input = input; // Store reference to input
 
@@ -315,7 +316,18 @@ export default class Player {
 			if (this.hasSuperKick) {
 				baseKickPower *= 3.0; 
 				this.hasSuperKick = false; // Consumed after one use
+			
+			// Big screen shake for super kick
+			if (this.camera) {
+				this.camera.shake(10, 0.3);
+			}
+			
 				console.log(`Player ${this.playerNumber} used SUPER KICK!`);
+			} else {
+				// Small screen shake for normal kick
+				if (this.camera) {
+					this.camera.shake(5, 0.2);
+				}
 			}
 			
 			const totalPower = baseKickPower + velocityBonus;

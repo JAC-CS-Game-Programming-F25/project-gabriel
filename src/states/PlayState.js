@@ -176,6 +176,21 @@ export default class PlayState extends State {
 			// Clean up match before transitioning
 			console.log("Match over, cleaning up...");
 			
+			// Update and save stats
+			const stats = GameStateManager.loadStats();
+			stats.matchesPlayed++;
+			stats.totalGoals += this.match.player1.score + this.match.player2.score;
+			
+			const winner = this.match.getWinner();
+			if (winner === 1) {
+				stats.player1Wins++;
+			} else if (winner === 2) {
+				stats.player2Wins++;
+			}
+			
+			GameStateManager.saveStats(stats);
+			console.log('Stats updated:', stats);
+			
 			// Clear saved game (match is complete)
 			GameStateManager.clearGameState();
 			
@@ -186,7 +201,6 @@ export default class PlayState extends State {
 				Composite.remove(world, body)
 			);
 			
-			const winner = this.match.getWinner();
 			if (winner === 0) {
 				stateMachine.change(GameStateName.GameOver, {
 					stadium: this.match.stadium,

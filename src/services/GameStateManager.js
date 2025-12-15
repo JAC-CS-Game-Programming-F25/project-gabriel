@@ -32,10 +32,8 @@ export default class GameStateManager {
 			};
 
 			localStorage.setItem(this.STORAGE_KEY, JSON.stringify(stateToSave));
-			console.log('Game state saved successfully');
 			return true;
 		} catch (error) {
-			console.error('Failed to save game state:', error);
 			return false;
 		}
 	}
@@ -139,7 +137,6 @@ export default class GameStateManager {
 		try {
 			const savedState = localStorage.getItem(this.STORAGE_KEY);
 			if (!savedState) {
-				console.log('No saved game state found');
 				return null;
 			}
 
@@ -148,15 +145,12 @@ export default class GameStateManager {
 			// Check if state is too old (more than 24 hours)
 			const ageHours = (Date.now() - state.timestamp) / (1000 * 60 * 60);
 			if (ageHours > 24) {
-				console.log('Saved state too old, discarding');
 				this.clearGameState();
 				return null;
 			}
 
-			console.log('Game state loaded successfully');
 			return state;
 		} catch (error) {
-			console.error('Failed to load game state:', error);
 			return null;
 		}
 	}
@@ -166,10 +160,7 @@ export default class GameStateManager {
 	 * Call this after match is created with correct characters
 	 */
 	static restoreMatch(match, savedMatchState) {
-		try {
-			console.log('Restoring match state...');
-			console.log('Saved timeRemaining:', savedMatchState.timeRemaining);
-			
+		try {			
 			// Restore timing
 			match.timeRemaining = savedMatchState.timeRemaining;
 			match.matchTimer = savedMatchState.matchTimer || 0;
@@ -200,11 +191,8 @@ export default class GameStateManager {
 			match.powerupSpawnTimer = savedMatchState.powerupSpawnTimer || 0;
 			match.powerupSpawnInterval = savedMatchState.powerupSpawnInterval || 15;
 
-			console.log('Match restored from saved state');
-			console.log('Time remaining:', match.timeRemaining);
 			return true;
 		} catch (error) {
-			console.error('Failed to restore match:', error);
 			return false;
 		}
 	}
@@ -307,7 +295,6 @@ export default class GameStateManager {
 	 */
 	static clearGameState() {
 		localStorage.removeItem(this.STORAGE_KEY);
-		console.log('Game state cleared');
 	}
 
 	/**
@@ -354,7 +341,6 @@ export default class GameStateManager {
 	 */
 	static hasSavedState() {
 		const saved = localStorage.getItem(this.STORAGE_KEY) !== null;
-		console.log('hasSavedState:', saved);
 		return saved;
 	}
 }

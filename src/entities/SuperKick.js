@@ -18,8 +18,6 @@ export default class SuperKick extends PowerUp {
 		// Apply super kick effect (one-time use)
 		player.hasSuperKick = true;
 		player.superKickTimer = PowerUp.DURATION; // Duration just for visual indicator
-		
-		console.log(`Player ${player.playerNumber} got SUPER KICK!`);
 	}
 
 	getColor() {

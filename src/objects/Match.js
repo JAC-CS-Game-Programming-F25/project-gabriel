@@ -132,9 +132,7 @@ export default class Match {
 	 * Cleanup method to properly remove all physics bodies
 	 * and event listeners when a match ends or is restarted.
 	 */
-	cleanup() {
-		console.log("Match cleanup starting...");
-		
+	cleanup() {		
 		// Remove collision event listener
 		Events.off(engine, 'collisionStart', this.collisionHandler);
 		
@@ -182,8 +180,6 @@ export default class Match {
 		if (this.ground && this.ground.body) {
 			Composite.remove(world, this.ground.body);
 		}
-		
-		console.log("Match cleanup complete!");
 	}
 
 	isBallGoalCollision(bodyA, bodyB) {
@@ -208,7 +204,6 @@ export default class Match {
 		
 		if (ballY < goalTopY + 15) {
 			// Ball is at/above crossbar so crossbar will handle physics, no goal
-			console.log("Ball at crossbar level! no goal!");
 			return;
 		}
 		
@@ -218,13 +213,11 @@ export default class Match {
 			this.lastScorer = 2;
 			this.player2.showHappyFace(2.0);
 			this.player1.showWincingFace(2.0);
-			console.log("Player 2 scored!");
 		} else {
 			this.player1.addScore();
 			this.lastScorer = 1;
 			this.player1.showHappyFace(2.0);
 			this.player2.showWincingFace(2.0);
-			console.log("Player 1 scored!");
 		}
 		
 		// Play crowd cheering sound
@@ -271,8 +264,6 @@ export default class Match {
 			
 			// Small screen shake for header
 			this.camera.shake(3, 0.15);
-			
-			console.log(`Player ${player.playerNumber} headed the ball!`);
 		}
 		// Boot collisions are just natural physics bumps 
 	}
@@ -318,8 +309,6 @@ export default class Match {
 		
 		// Play powerup appear sound
 		sounds.play(SoundName.PowerUpAppear);
-		
-		console.log(`PowerUp spawned: ${powerup.type}`);
 	}
 
 	update(dt) {
@@ -339,7 +328,6 @@ export default class Match {
 				
 				if (this.countdownTime <= 0) {
 					this.matchStarted = true;
-					console.log("MATCH START!");
 				}
 			}
 			

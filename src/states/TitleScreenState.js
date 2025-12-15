@@ -3,6 +3,7 @@ import GameStateName from '../enums/GameStateName.js';
 import ImageName from '../enums/ImageName.js';
 import SoundName from '../enums/SoundName.js';
 import { CANVAS_HEIGHT, CANVAS_WIDTH, context, images, input, stateMachine, sounds } from '../globals.js';
+import GameStateManager from '../services/GameStateManager.js';
 
 export default class TitleScreenState extends State {
 	constructor() {
@@ -25,18 +26,24 @@ export default class TitleScreenState extends State {
 		this.buttonHoverColor = '#374151';
 		this.startButtonColor = '#ef4444';
 		this.startButtonHoverColor = '#dc2626';
+		this.resumeButtonColor = '#22c55e'; // Green for resume
+		this.resumeButtonHoverColor = '#16a34a';
 		
 		// Buttons
+		this.resumeButton = null; // Only shown if saved game exists
 		this.startButton = null;
 		this.settingsButton = null;
+		
+		// Saved game detection
+		this.hasSavedGame = false;
 		
 		// Stats display at bottom
 		this.showStats = true;
 		this.stats = {
-			matches: 0,
-			wins: 0,
-			losses: 0,
-			goals: 0
+			matchesPlayed: 0,
+			player1Wins: 0,
+			player2Wins: 0,
+			totalGoals: 0
 		};
         //Soccer ball animation
         this.ballFrameCount = 8; 
@@ -46,10 +53,14 @@ export default class TitleScreenState extends State {
 	}
 
 	enter() {
+		// Check if there's a saved game
+		this.hasSavedGame = GameStateManager.hasSavedState();
+		console.log('Has saved game:', this.hasSavedGame);
+		
 		// Calculate button positions
 		this.calculateButtonPositions();
 		
-		// Load stats from localStorage if available
+		// Load stats from GameStateManager
 		this.loadStats();
 
         //Reset ball animation
@@ -62,51 +73,100 @@ export default class TitleScreenState extends State {
 	}
 
 	calculateButtonPositions() {
-		const buttonWidth = 240;
-		const buttonHeight = 50;
-		const buttonSpacing = 25;
-		const startY = this.panelY + 370;
+		const buttonWidth = 280;
+		const buttonHeight = 55;
+		const buttonSpacing = 20;
+		const startY = this.panelY + 340;
+		
+		let currentY = startY;
+		
+		// Resume button (only if saved game exists)
+		if (this.hasSavedGame) {
+			this.resumeButton = {
+				x: this.panelX + (this.panelWidth - buttonWidth) / 2,
+				y: currentY,
+				width: buttonWidth,
+				height: buttonHeight
+			};
+			currentY += buttonHeight + buttonSpacing;
+			console.log('Resume button created at y:', this.resumeButton.y);
+		} else {
+			this.resumeButton = null;
+			console.log('No resume button - no saved game');
+		}
 		
 		// Start Game button
 		this.startButton = {
 			x: this.panelX + (this.panelWidth - buttonWidth) / 2,
-			y: startY,
+			y: currentY,
 			width: buttonWidth,
 			height: buttonHeight
 		};
+		currentY += buttonHeight + buttonSpacing;
 		
 		// Settings button
 		this.settingsButton = {
 			x: this.panelX + (this.panelWidth - buttonWidth) / 2,
-			y: startY + buttonHeight + buttonSpacing,
+			y: currentY,
 			width: buttonWidth,
 			height: buttonHeight
 		};
+		
+		console.log('Buttons calculated. Resume:', !!this.resumeButton, 'Start:', !!this.startButton);
 	}
 
 	loadStats() {
-		// Try to load stats from localStorage
-		try {
-			const savedStats = localStorage.getItem('headSoccerStats');
-			if (savedStats) {
-				this.stats = JSON.parse(savedStats);
-			}
-		} catch (e) {
-			// If localStorage not available, use default stats
-			console.log('Could not load stats');
-		}
+		// Load stats from GameStateManager
+		this.stats = GameStateManager.loadStats();
+		console.log('Stats loaded:', this.stats);
 	}
 
 	handleClick(mouseX, mouseY) {
+		console.log('Click at:', mouseX, mouseY);
+		
+		// Check Resume button (if it exists)
+		if (this.resumeButton && this.isPointInButton(mouseX, mouseY, this.resumeButton)) {
+			console.log('RESUME BUTTON CLICKED!');
+			sounds.play(SoundName.Click);
+			
+			// Load saved state
+			const savedState = GameStateManager.loadGameState();
+			if (savedState && savedState.match) {
+				console.log('Resuming saved game...');
+				console.log('Saved match:', savedState.match);
+				
+				// Go directly to PlayState with restore flag
+				stateMachine.change(GameStateName.Play, {
+					restoreState: savedState
+				});
+			} else {
+				console.error('Failed to load saved game');
+				// Clear the invalid save
+				GameStateManager.clearGameState();
+				this.hasSavedGame = false;
+				this.calculateButtonPositions();
+			}
+			return;
+		}
+		
 		// Check Start Game button
 		if (this.isPointInButton(mouseX, mouseY, this.startButton)) {
+			console.log('START BUTTON CLICKED');
 			sounds.play(SoundName.Click);
+			
+			// If there's a saved game, clear it (starting new game)
+			if (this.hasSavedGame) {
+				GameStateManager.clearGameState();
+				console.log('Starting new game - cleared saved game');
+			}
+			
 			stateMachine.change(GameStateName.CharacterSelect);
 			return;
 		}
 		
 		// Check Settings button
 		if (this.isPointInButton(mouseX, mouseY, this.settingsButton)) {
+			console.log('SETTINGS BUTTON CLICKED');
 			sounds.play(SoundName.Click);
 			stateMachine.change(GameStateName.Settings);
 			return;
@@ -188,7 +248,6 @@ export default class TitleScreenState extends State {
 		context.textAlign = 'center';
 		context.textBaseline = 'top';
 		
-		// Soccer ball emoji and som text
 		const subtitle = 'Created by Gabriel Jutras';
 		context.fillText(subtitle, this.panelX + this.panelWidth / 2, this.panelY + 160);
 	}
@@ -220,6 +279,26 @@ export default class TitleScreenState extends State {
 	}
 
 	drawButtons(mouseX, mouseY) {
+		// Resume button (if saved game exists)
+		if (this.resumeButton) {
+			const resumeHovered = this.isPointInButton(mouseX, mouseY, this.resumeButton);
+			context.fillStyle = resumeHovered ? this.resumeButtonHoverColor : this.resumeButtonColor;
+			context.fillRect(this.resumeButton.x, this.resumeButton.y, this.resumeButton.width, this.resumeButton.height);
+			context.strokeStyle = this.borderColor;
+			context.lineWidth = 2;
+			context.strokeRect(this.resumeButton.x, this.resumeButton.y, this.resumeButton.width, this.resumeButton.height);
+			
+			context.fillStyle = this.textColor;
+			context.font = 'bold 22px Roboto, sans-serif';
+			context.textAlign = 'center';
+			context.textBaseline = 'middle';
+			context.fillText(
+				'▶ RESUME GAME',
+				this.resumeButton.x + this.resumeButton.width / 2,
+				this.resumeButton.y + this.resumeButton.height / 2
+			);
+		}
+		
 		// Start Game button
 		const startHovered = this.isPointInButton(mouseX, mouseY, this.startButton);
 		context.fillStyle = startHovered ? this.startButtonHoverColor : this.startButtonColor;
@@ -233,7 +312,7 @@ export default class TitleScreenState extends State {
 		context.textAlign = 'center';
 		context.textBaseline = 'middle';
 		context.fillText(
-			'▶ START GAME',
+			this.hasSavedGame ? 'NEW GAME' : '▶ START GAME',
 			this.startButton.x + this.startButton.width / 2,
 			this.startButton.y + this.startButton.height / 2
 		);
@@ -289,14 +368,20 @@ export default class TitleScreenState extends State {
 		context.textAlign = 'center';
 		context.textBaseline = 'middle';
 		
+		// Use new stats format
+		const matches = this.stats.matchesPlayed || 0;
+		const p1wins = this.stats.player1Wins || 0;
+		const p2wins = this.stats.player2Wins || 0;
+		const goals = this.stats.totalGoals || 0;
+		
 		// Matches
-		context.fillText(this.stats.matches.toString(), statsX + statSpacing * 0.5, statY);
-		// Wins
-		context.fillText(this.stats.wins.toString(), statsX + statSpacing * 1.5, statY);
-		// Losses
-		context.fillText(this.stats.losses.toString(), statsX + statSpacing * 2.5, statY);
+		context.fillText(matches.toString(), statsX + statSpacing * 0.5, statY);
+		// P1 Wins
+		context.fillText(p1wins.toString(), statsX + statSpacing * 1.5, statY);
+		// P2 Wins
+		context.fillText(p2wins.toString(), statsX + statSpacing * 2.5, statY);
 		// Goals
-		context.fillText(this.stats.goals.toString(), statsX + statSpacing * 3.5, statY);
+		context.fillText(goals.toString(), statsX + statSpacing * 3.5, statY);
 		
 		// Labels
 		context.fillStyle = this.subtitleColor;
@@ -306,8 +391,8 @@ export default class TitleScreenState extends State {
 		
 		const labelY = statY + 25;
 		context.fillText('MATCHES', statsX + statSpacing * 0.5, labelY);
-		context.fillText('WINS', statsX + statSpacing * 1.5, labelY);
-		context.fillText('LOSSES', statsX + statSpacing * 2.5, labelY);
+		context.fillText('P1 WINS', statsX + statSpacing * 1.5, labelY);
+		context.fillText('P2 WINS', statsX + statSpacing * 2.5, labelY);
 		context.fillText('GOALS', statsX + statSpacing * 3.5, labelY);
 	}
 }

@@ -25,6 +25,6 @@ export default class SpawningState extends State {
 	}
 
 	exit() {
-		this.powerup.spawning = false;
+		this.powerup.spawning = false; 
 	}
 }

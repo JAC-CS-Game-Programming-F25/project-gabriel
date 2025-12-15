@@ -356,12 +356,12 @@ export default class Match {
 		this.stadium.render();
 		this.goal1.render();
 		this.goal2.render();
-		this.renderUI();
 		this.player1.render();
 		this.player2.render();
 		this.ball.render();
 		this.powerups.forEach(powerup => powerup.render());
 		this.ground.render();
+		this.renderUI();
 	}
 
 	renderUI() {

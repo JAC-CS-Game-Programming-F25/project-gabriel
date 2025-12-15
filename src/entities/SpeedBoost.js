@@ -17,9 +17,7 @@ export default class SpeedBoost extends PowerUp {
 		
 		// Apply speed boost effect
 		player.hasSpeedBoost = true;
-		player.speedBoostTimer = PowerUp.DURATION;
-		
-		console.log(`Player ${player.playerNumber} got SPEED BOOST!`);
+		player.speedBoostTimer = PowerUp.DURATION;	
 	}
 
 	getColor() {

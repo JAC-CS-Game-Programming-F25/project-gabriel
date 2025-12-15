@@ -22,18 +22,15 @@ export default class EffectActiveState extends State {
 			case PowerUpType.SpeedBoost:
 				this.player.hasSpeedBoost = true;
 				this.player.speedBoostTimer = this.effectDuration;
-				console.log(`Player ${this.player.playerNumber} got Speed Boost!`);
 				break;
 			case PowerUpType.BigHead:
 				this.player.hasBigHead = true;
 				this.player.bigHeadTimer = this.effectDuration;
-				console.log(`Player ${this.player.playerNumber} got Big Head!`);
 				break;
 			case PowerUpType.SuperKick:
 				this.player.hasSuperKick = true;
 				this.player.superKickTimer = this.effectDuration;
-				console.log(`Player ${this.player.playerNumber} got Super Kick!`);
-				break;
+		break;
 		}
 	}
 

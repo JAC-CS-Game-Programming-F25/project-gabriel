@@ -331,9 +331,7 @@ export default class Player {
 				if (this.camera) {
 					this.camera.shake(10, 0.3);
 				}
-				
-				console.log(`Player ${this.playerNumber} used SUPER KICK!`);
-			} else {
+				} else {
 				// Small screen shake for normal kick
 				if (this.camera) {
 					this.camera.shake(5, 0.2);
@@ -345,9 +343,7 @@ export default class Player {
 			matter.Body.applyForce(this.ball.body, this.ball.body.position, {
 				x: kickDirection * totalPower,
 				y: -0.08, 
-			});
-			
-			console.log(`Player ${this.playerNumber} KICKED! Power: ${totalPower.toFixed(2)}`);
+			});			
 		}
 	}
 
@@ -368,7 +364,6 @@ export default class Player {
 			if (this.speedBoostTimer <= 0) {
 				this.hasSpeedBoost = false;
 				this.speedBoostTimer = 0;
-				console.log(`Player ${this.playerNumber} speed boost expired`);
 			}
 		}
 		
@@ -379,7 +374,6 @@ export default class Player {
 				this.removeBigHead();
 				this.hasBigHead = false;
 				this.bigHeadTimer = 0;
-				console.log(`Player ${this.playerNumber} big head expired`);
 			}
 		}
 		
@@ -589,9 +583,7 @@ export default class Player {
 	 * Player has a composite body structure (head + boot + constraint),
 	 * so we need to remove all components individually.
 	 */
-	cleanup() {
-		console.log(`Cleaning up Player ${this.playerNumber}`);
-		
+	cleanup() {		
 		// Remove entity references
 		if (this.head) {
 			this.head.entity = null;
@@ -616,9 +608,7 @@ export default class Player {
 		}
 		
 		// Clear ball reference
-		this.ball = null;
-		
-		console.log(`Player ${this.playerNumber} cleanup complete`);
+		this.ball = null;	
 	}
 
 	/**

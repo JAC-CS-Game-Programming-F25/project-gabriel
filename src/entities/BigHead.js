@@ -19,8 +19,6 @@ export default class BigHead extends PowerUp {
 		player.hasBigHead = true;
 		player.bigHeadTimer = PowerUp.DURATION;
 		player.applyBigHead();
-		
-		console.log(`Player ${player.playerNumber} got BIG HEAD!`);
 	}
 
 	getColor() {

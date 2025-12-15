@@ -73,7 +73,6 @@ export default class SettingsState extends State {
 			// Apply settings immediately
 			this.applySettings();
 			
-			console.log('Settings saved!');
 		} catch (e) {
 			console.log('Could not save settings');
 		}

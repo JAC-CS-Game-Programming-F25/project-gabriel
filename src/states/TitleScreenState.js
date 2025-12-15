@@ -55,7 +55,6 @@ export default class TitleScreenState extends State {
 	enter() {
 		// Check if there's a saved game
 		this.hasSavedGame = GameStateManager.hasSavedState();
-		console.log('Has saved game:', this.hasSavedGame);
 		
 		// Calculate button positions
 		this.calculateButtonPositions();
@@ -89,10 +88,8 @@ export default class TitleScreenState extends State {
 				height: buttonHeight
 			};
 			currentY += buttonHeight + buttonSpacing;
-			console.log('Resume button created at y:', this.resumeButton.y);
 		} else {
 			this.resumeButton = null;
-			console.log('No resume button - no saved game');
 		}
 		
 		// Start Game button
@@ -112,29 +109,22 @@ export default class TitleScreenState extends State {
 			height: buttonHeight
 		};
 		
-		console.log('Buttons calculated. Resume:', !!this.resumeButton, 'Start:', !!this.startButton);
 	}
 
 	loadStats() {
 		// Load stats from GameStateManager
 		this.stats = GameStateManager.loadStats();
-		console.log('Stats loaded:', this.stats);
 	}
 
 	handleClick(mouseX, mouseY) {
-		console.log('Click at:', mouseX, mouseY);
 		
 		// Check Resume button (if it exists)
 		if (this.resumeButton && this.isPointInButton(mouseX, mouseY, this.resumeButton)) {
-			console.log('RESUME BUTTON CLICKED!');
 			sounds.play(SoundName.Click);
 			
 			// Load saved state
 			const savedState = GameStateManager.loadGameState();
-			if (savedState && savedState.match) {
-				console.log('Resuming saved game...');
-				console.log('Saved match:', savedState.match);
-				
+			if (savedState && savedState.match) {				
 				// Go directly to PlayState with restore flag
 				stateMachine.change(GameStateName.Play, {
 					restoreState: savedState
@@ -151,13 +141,11 @@ export default class TitleScreenState extends State {
 		
 		// Check Start Game button
 		if (this.isPointInButton(mouseX, mouseY, this.startButton)) {
-			console.log('START BUTTON CLICKED');
 			sounds.play(SoundName.Click);
 			
 			// If there's a saved game, clear it (starting new game)
 			if (this.hasSavedGame) {
 				GameStateManager.clearGameState();
-				console.log('Starting new game - cleared saved game');
 			}
 			
 			stateMachine.change(GameStateName.CharacterSelect);
@@ -166,7 +154,6 @@ export default class TitleScreenState extends State {
 		
 		// Check Settings button
 		if (this.isPointInButton(mouseX, mouseY, this.settingsButton)) {
-			console.log('SETTINGS BUTTON CLICKED');
 			sounds.play(SoundName.Click);
 			stateMachine.change(GameStateName.Settings);
 			return;
